@@ -1,0 +1,21 @@
+{
+  "name": "omniroute-test",
+  "version": "1.0.0",
+  "description": "Interfaz local de chat para OmniRoute",
+  "main": "index.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "check": "node --check server.js && node --check index.js",
+    "test": "node --test"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "better-sqlite3": "^13.0.3",
+    "express": "^5.2.1",
+    "openai": "^7.18.0"
+  }
+}
