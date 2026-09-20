@@ -1,5 +1,7 @@
 const express = require("express");
 const OpenAI = require("openai");
+const fs = require("fs");
+const path = require("path");
 const { calculate } = require("./lib/calculator");
 const { validateChatRequest } = require("./lib/chat-validation");
 const { createDatabase } = require("./lib/database");
@@ -124,7 +126,9 @@ const nexus = createNexusService({
     calculate,
     captureMemory: MEMORY_CAPTURE_ENABLED ? text => extractMemory(text) : null
 });
-app.use(express.static("public"));
+// Serve the Astro build when available, while keeping the legacy UI as a fallback.
+const frontendDirectory = fs.existsSync(path.join(__dirname, "dist")) ? "dist" : "public";
+app.use(express.static(path.join(__dirname, frontendDirectory)));
 app.use("/api", createConversationsRouter({
     createConversation,
     getConversations,

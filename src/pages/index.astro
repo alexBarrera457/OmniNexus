@@ -1,0 +1,321 @@
+---
+import '../styles/global.css';
+const quickPrompts = [
+  { title: 'Aprender', text: 'Explícame un concepto de programación de forma sencilla.' },
+  { title: 'Crear proyecto', text: 'Ayúdame a crear una idea de proyecto web espectacular.' },
+  { title: 'Resolver', text: 'Analiza este problema paso a paso y propón una solución.' },
+  { title: 'Mejorar', text: 'Dame 5 ideas para mejorar esta aplicación.' },
+];
+---
+
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>OMNI // NEXUS</title>
+  </head>
+  <body>
+    <canvas class="ambient-video" id="ambientCanvas" aria-hidden="true"></canvas>
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="brand-row">
+          <div class="brand">
+            <div class="brand-mark">✦</div>
+            <div>
+              <strong>NEXUS</strong>
+              <span>OMNI INTELLIGENCE</span>
+            </div>
+          </div>
+          <span class="version">06.2</span>
+        </div>
+
+        <button class="new-chat" id="newChat" type="button"><span>＋</span> Nueva conversación</button>
+
+        <div class="side-heading">
+          <span>QUICK START</span>
+          <i></i>
+        </div>
+
+        <div class="prompt-list">
+          {quickPrompts.map((prompt) => (
+            <button class="quick-button" type="button" data-prompt={prompt.text}>
+              <span class="quick-icon">{prompt.title === 'Aprender' ? '◒' : prompt.title === 'Crear proyecto' ? '↗' : prompt.title === 'Resolver' ? '⌁' : '✦'}</span>
+              <span class="quick-copy"><strong>{prompt.title}</strong>
+              <span>{prompt.text}</span>
+              </span>
+            </button>
+          ))}
+        </div>
+
+        <div class="sidebar-footer">
+          <div class="footer-line"><span class="live-dot"></span><span>LOCAL RUNTIME</span><strong>READY</strong></div>
+          <div class="footer-line muted"><span>MODEL ROUTE</span><strong>OMNI / AUTO</strong></div>
+        </div>
+      </aside>
+
+      <main class="chat-panel">
+        <header class="topbar">
+          <div class="crumb"><span>WORKSPACE</span><b>/</b><strong>NEW SESSION</strong></div>
+          <div class="topbar-actions">
+            <span class="status-pill" id="runtimeStatus"><span class="status-dot"></span>Local runtime</span>
+            <button class="top-icon" type="button" aria-label="Más opciones">•••</button>
+          </div>
+        </header>
+
+        <section class="messages" id="messages">
+          <div class="empty-state">
+            <div class="hero-orbit"><span>✦</span></div>
+            <p class="eyebrow">YOUR LOCAL INTELLIGENCE LAYER</p>
+            <h1>Think in <em>systems.</em></h1>
+            <p class="hero-copy">NEXUS turns questions into decisions, ideas into momentum, and complex work into a clear next move.</p>
+            <div class="hero-tags"><span>WEB SEARCH</span><span>MEMORY</span><span>CALCULATOR</span></div>
+          </div>
+        </section>
+
+        <div class="composer-shell">
+          <div class="composer">
+            <div class="composer-prefix">N</div>
+            <textarea id="input" rows="1" placeholder="Ask NEXUS anything..."></textarea>
+            <button class="send-btn" id="send" type="button" aria-label="Enviar mensaje">↑</button>
+          </div>
+          <div class="note">
+            <span><b>ENTER</b> to send</span>
+            <span>PRIVATE · LOCAL · PERSISTENT</span>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script>
+      const ambientCanvas = document.getElementById('ambientCanvas');
+      const ambientContext = ambientCanvas.getContext('2d');
+      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      function resizeAmbientCanvas() {
+        const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+        ambientCanvas.width = window.innerWidth * pixelRatio;
+        ambientCanvas.height = window.innerHeight * pixelRatio;
+        ambientCanvas.style.width = `${window.innerWidth}px`;
+        ambientCanvas.style.height = `${window.innerHeight}px`;
+        ambientContext.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+      }
+
+      function drawAmbientVideo(time = 0) {
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+        ambientContext.clearRect(0, 0, width, height);
+        ambientContext.fillStyle = '#050813';
+        ambientContext.fillRect(0, 0, width, height);
+
+        const drift = prefersReducedMotion ? 0 : time * 0.00003;
+        const centerX = width * 0.68 + Math.sin(drift) * width * 0.04;
+        const centerY = height * 0.42 + Math.cos(drift * 1.2) * height * 0.035;
+        const nebula = ambientContext.createRadialGradient(centerX, centerY, 0, centerX, centerY, width * 0.65);
+        nebula.addColorStop(0, 'rgba(45, 164, 255, 0.22)');
+        nebula.addColorStop(.36, 'rgba(90, 55, 190, 0.1)');
+        nebula.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ambientContext.fillStyle = nebula;
+        ambientContext.fillRect(0, 0, width, height);
+
+        const ember = ambientContext.createRadialGradient(width * .18, height * .82, 0, width * .18, height * .82, width * .4);
+        ember.addColorStop(0, 'rgba(255, 93, 68, 0.13)');
+        ember.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ambientContext.fillStyle = ember;
+        ambientContext.fillRect(0, 0, width, height);
+
+        ambientContext.save();
+        ambientContext.translate(centerX, centerY);
+        ambientContext.rotate(-.18 + Math.sin(drift) * .02);
+        ambientContext.strokeStyle = 'rgba(124, 225, 255, .16)';
+        ambientContext.lineWidth = 1;
+        for (let ring = 0; ring < 5; ring += 1) {
+          const radius = width * (.1 + ring * .075) + (prefersReducedMotion ? 0 : (time * (.018 + ring * .003)) % 34);
+          ambientContext.beginPath();
+          ambientContext.ellipse(0, 0, radius, radius * .26, 0, 0, Math.PI * 2);
+          ambientContext.stroke();
+        }
+        ambientContext.restore();
+
+        ambientContext.fillStyle = 'rgba(224, 245, 255, .72)';
+        const particleCount = Math.min(95, Math.floor(width / 10));
+        for (let index = 0; index < particleCount; index += 1) {
+          const seed = index * 19.37;
+          const x = (seed * 47) % width;
+          const baseY = (seed * 23) % height;
+          const y = prefersReducedMotion ? baseY : (baseY + time * (.006 + (index % 4) * .002)) % height;
+          const size = index % 11 === 0 ? 1.7 : .7;
+          ambientContext.globalAlpha = index % 11 === 0 ? .85 : .32;
+          ambientContext.beginPath();
+          ambientContext.arc(x, y, size, 0, Math.PI * 2);
+          ambientContext.fill();
+        }
+        ambientContext.globalAlpha = 1;
+
+        if (!prefersReducedMotion) requestAnimationFrame(drawAmbientVideo);
+      }
+
+      resizeAmbientCanvas();
+      drawAmbientVideo();
+      window.addEventListener('resize', resizeAmbientCanvas);
+
+      const messagesEl = document.getElementById('messages');
+      const inputEl = document.getElementById('input');
+      const sendBtn = document.getElementById('send');
+      const state = {
+        activeMessages: [],
+        conversationId: null,
+      };
+
+      function escapeHtml(value) {
+        return String(value ?? '').replace(/[&<>"']/g, (char) => ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#039;',
+        }[char]));
+      }
+
+      function formatText(text) {
+        let formatted = escapeHtml(text);
+        formatted = formatted.replace(/```([\s\S]*?)```/g, '<pre>$1</pre>');
+        formatted = formatted.replace(/`([^`]+)`/g, '<code>$1</code>');
+        return formatted;
+      }
+
+      function renderMessages() {
+        messagesEl.innerHTML = '';
+
+        if (state.activeMessages.length === 0) {
+          messagesEl.innerHTML = `
+            <div class="empty-state">
+              <div class="hero-orbit"><span>✦</span></div>
+              <p class="eyebrow">YOUR LOCAL INTELLIGENCE LAYER</p>
+              <h1>Think in <em>systems.</em></h1>
+              <p class="hero-copy">NEXUS turns questions into decisions, ideas into momentum, and complex work into a clear next move.</p>
+              <div class="hero-tags"><span>WEB SEARCH</span><span>MEMORY</span><span>CALCULATOR</span></div>
+            </div>
+          `;
+          return;
+        }
+
+        state.activeMessages.forEach((message) => {
+          const row = document.createElement('article');
+          row.className = `message-row ${message.role === 'user' ? 'user' : 'assistant'}`;
+          row.innerHTML = `
+            <div class="message-header">${message.role === 'user' ? 'Tú' : 'Nexus'}</div>
+            <div class="message-body">${formatText(message.content)}</div>
+          `;
+          messagesEl.appendChild(row);
+        });
+
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+      }
+
+      function appendMessage(role, content) {
+        state.activeMessages.push({ role, content });
+        renderMessages();
+      }
+
+      function setRuntimeStatus(online, label = online ? 'Local runtime' : 'Runtime offline') {
+        const status = document.getElementById('runtimeStatus');
+        status.classList.toggle('offline', !online);
+        status.innerHTML = `<span class="status-dot"></span>${label}`;
+      }
+
+      function showProcessing() {
+        const row = document.createElement('article');
+        row.className = 'message-row assistant processing';
+        row.innerHTML = '<div class="message-header">Nexus · processing</div><div class="processing-line"><span></span><span></span><span></span></div>';
+        messagesEl.appendChild(row);
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+      }
+
+      function hideProcessing() {
+        messagesEl.querySelector('.processing')?.remove();
+      }
+
+      async function sendMessage() {
+        const text = inputEl.value.trim();
+        if (!text || sendBtn.disabled) return;
+
+        appendMessage('user', text);
+        inputEl.value = '';
+        inputEl.style.height = 'auto';
+
+        sendBtn.disabled = true;
+        sendBtn.classList.add('is-processing');
+        sendBtn.textContent = '…';
+        showProcessing();
+
+        try {
+          const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ messages: state.activeMessages, conversationId: state.conversationId }),
+          });
+
+          const payload = await response.json();
+          if (!response.ok) {
+            throw new Error(payload.error || 'Error en la conversación');
+          }
+
+          const answer = payload.respuesta || payload.content || 'Sin respuesta disponible.';
+          state.conversationId = payload.conversationId || state.conversationId;
+          appendMessage('assistant', answer);
+          setRuntimeStatus(true);
+        } catch (error) {
+          setRuntimeStatus(false);
+          appendMessage('assistant', `⚠️ ${error.message}`);
+        } finally {
+          hideProcessing();
+          sendBtn.disabled = false;
+          sendBtn.classList.remove('is-processing');
+          sendBtn.textContent = '↑';
+          inputEl.focus();
+        }
+      }
+
+      document.getElementById('newChat').addEventListener('click', () => {
+        state.activeMessages = [];
+        state.conversationId = null;
+        renderMessages();
+      });
+
+      document.querySelectorAll('[data-prompt]').forEach((button) => {
+        button.addEventListener('click', () => {
+          const value = button.getAttribute('data-prompt');
+          inputEl.value = value;
+          inputEl.focus();
+        });
+      });
+
+      sendBtn.addEventListener('click', sendMessage);
+
+      inputEl.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' && !event.shiftKey) {
+          event.preventDefault();
+          sendMessage();
+        }
+      });
+
+      inputEl.addEventListener('input', () => {
+        inputEl.style.height = 'auto';
+        inputEl.style.height = `${Math.min(inputEl.scrollHeight, 170)}px`;
+      });
+
+      async function checkRuntime() {
+        try {
+          const response = await fetch('/api/health', { cache: 'no-store' });
+          if (!response.ok) throw new Error('offline');
+          setRuntimeStatus(true);
+        } catch {
+          setRuntimeStatus(false);
+        }
+      }
+
+      checkRuntime();
+      window.setInterval(checkRuntime, 15000);
+    </script>
+  </body>
+</html>

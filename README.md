@@ -8,6 +8,14 @@ Este repositorio está pensado como una base funcional para continuar iterando, 
 
 ## Estado actual del proyecto
 
+**Estado:** preparado para commit y continuación.
+
+La aplicación tiene un backend Express funcional, persistencia SQLite y una
+interfaz Astro con una experiencia visual cinematográfica: fondo procedural con
+nebulosa, anillos orbitales y partículas, estados de conexión y feedback de
+procesamiento. La UI se ejecuta sobre la API existente; no hay una segunda API
+ni una migración de datos necesaria.
+
 ### Lo que va bien
 
 - La app web sirve correctamente en `http://127.0.0.1:3000`.
@@ -17,6 +25,10 @@ Este repositorio está pensado como una base funcional para continuar iterando, 
 - La lógica de cálculo local está testeada.
 - La validación de peticiones del chat está funcionando.
 - La interfaz web carga y presenta el flujo básico de conversaciones.
+- La interfaz Astro conserva el contrato `/api/chat` y mantiene el
+  `conversationId` durante una sesión.
+- El frontend muestra el estado real de `/api/health` y un indicador mientras
+  NEXUS está procesando una respuesta.
 - La suite de pruebas automatizadas pasa.
 
 ### Lo que falla o está bloqueado
@@ -59,17 +71,26 @@ La idea principal es tener un sistema más parecido a un “panel local de agent
 
 ### Frontend
 
-La interfaz se encuentra en `public/index.html`.
+La interfaz nueva se encuentra en `src/pages/index.astro` y sus estilos en
+`src/styles/global.css`. Astro mantiene la UI separada del backend y redirige
+las llamadas `/api` al servidor Express durante desarrollo.
+
+`public/index.html` se conserva como fallback: si todavía no existe `dist/`,
+Express sirve esa versión para que el backend siga arrancando aunque aún no se
+haya construido Astro.
 
 Incluye:
 
-- sidebar con conversaciones
+- composición responsive para escritorio, tablet y móvil
+- fondo animado procedural local, sin vídeo externo ni assets pesados
 - mensajes de usuario y assistant
-- edición y borrado de conversaciones
-- teclado rápido
-- búsqueda local
-- exportación JSON
-- UI con estado en vivo
+- accesos rápidos para aprender, crear, resolver y mejorar
+- estado real del runtime y feedback de procesamiento
+- control para reiniciar la sesión visual
+
+La interfaz Astro se sirve en desarrollo desde `http://127.0.0.1:4321` por
+defecto. El backend Express continúa en el puerto `3000`; Astro reenvía las
+peticiones `/api/*` mediante el proxy de `astro.config.mjs`.
 
 ### Backend
 
@@ -128,8 +149,14 @@ En `routes/` se exponen los endpoints de conversaciones y memoria:
 │   ├── conversation-repository.js
 │   ├── database.js
 │   └── memory-repository.js
+├── astro.config.mjs
+├── src/
+│   ├── pages/
+│   │   └── index.astro
+│   └── styles/
+│       └── global.css
 ├── public/
-│   └── index.html
+│   └── index.html (fallback legacy)
 ├── routes/
 │   ├── conversations.js
 │   └── memory.js
@@ -183,10 +210,42 @@ NEXUS_DB_PATH=./nexus-memory.db
 npm start
 ```
 
+En Windows PowerShell, si la política de ejecución bloquea `npm.ps1`, utiliza
+`npm.cmd`:
+
+```powershell
+npm.cmd install
+npm.cmd run dev
+```
+
+### Desarrollo con Astro
+
+Para trabajar en frontend y backend al mismo tiempo:
+
+```bash
+npm run dev
+```
+
+La interfaz Astro queda disponible en `http://127.0.0.1:4321` y reenvía
+`/api/*` a Express en el puerto `3000`.
+
 ### 4) Abrir la web
 
 ```text
 http://127.0.0.1:3000
+```
+
+Durante `npm run dev`, abre preferiblemente:
+
+```text
+http://127.0.0.1:4321
+```
+
+Si ese puerto ya está ocupado por otra aplicación Astro, arranca el frontend
+en otro puerto y comprueba que pertenece a este repositorio:
+
+```bash
+npx astro dev --host 127.0.0.1 --port 4322
 ```
 
 ### 5) Probar la API
@@ -196,6 +255,57 @@ curl -X POST http://127.0.0.1:3000/api/chat \
   -H "Content-Type: application/json" \
   -d '{"messages":[{"role":"user","content":"hola"}]}'
 ```
+
+### 6) Construir para producción
+
+```bash
+npm run build
+npm start
+```
+
+Cuando existe `dist/`, Express sirve automáticamente la build Astro. Si no
+existe, usa `public/index.html` como fallback legacy.
+
+## Scripts
+
+| Script | Uso |
+| --- | --- |
+| `npm start` | Arranca Express y sirve `dist/` o `public/`. |
+| `npm run dev` | Arranca Express y Astro en paralelo. |
+| `npm run dev:server` | Solo backend con `node --watch`. |
+| `npm run dev:astro` | Solo frontend Astro. |
+| `npm run build` | Genera `dist/` para producción. |
+| `npm run preview` | Previsualiza la build Astro. |
+| `npm run check` | Comprueba sintaxis de los entrypoints Node. |
+| `npm test` | Ejecuta la suite de Node. |
+
+## Verificación antes del commit
+
+Ejecutar desde la raíz del repositorio:
+
+```bash
+npm install
+npm run check
+npm test
+npm run build
+```
+
+En Windows con PowerShell bloqueando scripts:
+
+```powershell
+npm.cmd install
+npm.cmd run check
+npm.cmd test
+npm.cmd run build
+```
+
+La comprobación visual debe confirmar:
+
+- la página `OMNI // NEXUS`, no otra aplicación Astro del mismo puerto
+- el fondo animado y el formulario de chat
+- el estado `Local runtime`
+- que `/api/health` responde desde el backend
+- que el frontend muestra un estado de procesamiento al enviar
 
 ---
 
@@ -397,7 +507,45 @@ Resultado verificado en el proyecto:
 
 ### Prioridad baja
 
-- Mejorar la UX de la interfaz web.
+- Cargar desde Astro el listado completo de conversaciones persistidas en SQLite.
+- Añadir acciones de exportación, borrado y búsqueda a la nueva interfaz Astro.
+
+## Preparación del commit
+
+Antes de crear el commit, comprueba:
+
+```bash
+git status
+git diff --check
+npm run check
+npm test
+npm run build
+```
+
+En Windows PowerShell con la política de scripts restrictiva:
+
+```powershell
+git status
+git diff --check
+npm.cmd run check
+npm.cmd test
+npm.cmd run build
+```
+
+No deben entrar en el commit:
+
+- `.env`
+- `nexus-memory.db*`
+- `node_modules/`
+- `dist/`
+
+Comando recomendado cuando las comprobaciones terminan correctamente:
+
+```bash
+git add .
+git commit -m "feat: integrate Astro command center UI"
+git push
+```
 - Añadir exportación CSV o markdown.
 - Añadir modo oscuro/claro configurable.
 - Añadir panel de diagnóstico de sistema.

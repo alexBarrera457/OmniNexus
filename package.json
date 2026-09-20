@@ -5,7 +5,11 @@
   "main": "index.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node --watch server.js",
+    "dev:server": "node --watch server.js",
+    "dev:astro": "astro dev --host 0.0.0.0",
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:astro\"",
+    "build": "astro build",
+    "preview": "astro preview --host 0.0.0.0",
     "check": "node --check server.js && node --check index.js",
     "test": "node --test"
   },
@@ -17,5 +21,9 @@
     "better-sqlite3": "^13.0.3",
     "express": "^5.2.1",
     "openai": "^7.18.0"
+  },
+  "devDependencies": {
+    "astro": "^5.15.0",
+    "concurrently": "^9.2.0"
   }
 }
