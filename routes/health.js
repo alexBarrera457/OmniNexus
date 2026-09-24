@@ -1,5 +1,5 @@
 "use strict";
-function createHealthRouter({ memoryEnabled, model = "gpt-4.1" } = {}) {
+function createHealthRouter({ memoryEnabled, model = "gpt-4.1", demoMode = false } = {}) {
   const express = require("express");
   const router = express.Router();
   router.get("/health", (req, res) => {
@@ -7,8 +7,9 @@ function createHealthRouter({ memoryEnabled, model = "gpt-4.1" } = {}) {
       ok: true,
       name: "OMNI // NEXUS",
       version: "6.2",
-      status: "online",
-      provider: model,
+      status: demoMode ? "online (demo)" : "online",
+      provider: demoMode ? "Demo Local (Mock)" : model,
+      demoMode,
       tools: ["WEB", "CALCULATOR", "CLOCK", "CHAT"],
       memory: memoryEnabled,
       conversations: true,

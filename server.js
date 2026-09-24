@@ -8,6 +8,7 @@ const {
   PORT,
   HOST,
   DEFAULT_MODEL,
+  DEMO_MODE,
   MEMORY_CAPTURE_ENABLED,
   MAX_MESSAGE_LENGTH,
   MAX_REQUEST_MESSAGES,
@@ -55,29 +56,31 @@ const nexus = createNexusService({
   memories: { getMemories },
   webSearch,
   calculate,
-  captureMemory: MEMORY_CAPTURE_ENABLED
-    ? async (text) => {
-        try {
-          const response = await client.chat.completions.create({
-            model: DEFAULT_MODEL,
-            messages: [
-              {
-                role: "system",
-                content: `Analiza el mensaje del usuario.\nDetermina si contiene información útil para recordar en futuras conversaciones.\nPuedes guardar:\n- proyectos\n- estudios\n- preferencias\n- objetivos\n- tecnologías utilizadas\n- información relevante sobre sus proyectos\nNO guardes:\n- contraseñas\n- API keys\n- datos bancarios\n- información extremadamente sensible\nSi NO hay nada útil responde exactamente:\nNONE\nSi hay información útil, devuelve solamente la memoria.`,
-              },
-              { role: "user", content: text },
-            ],
-          });
-          const memory = response.choices?.[0]?.message?.content?.trim();
-          if (memory && memory !== "NONE" && memory.length < 500) {
-            saveMemory(memory);
-            console.log(`💾 MEMORY SAVED → ${memory}`);
+  demoMode: DEMO_MODE,
+  captureMemory:
+    MEMORY_CAPTURE_ENABLED && !DEMO_MODE
+      ? async (text) => {
+          try {
+            const response = await client.chat.completions.create({
+              model: DEFAULT_MODEL,
+              messages: [
+                {
+                  role: "system",
+                  content: `Analiza el mensaje del usuario.\nDetermina si contiene información útil para recordar en futuras conversaciones.\nPuedes guardar:\n- proyectos\n- estudios\n- preferencias\n- objetivos\n- tecnologías utilizadas\n- información relevante sobre sus proyectos\nNO guardes:\n- contraseñas\n- API keys\n- datos bancarios\n- información extremadamente sensible\nSi NO hay nada útil responde exactamente:\nNONE\nSi hay información útil, devuelve solamente la memoria.`,
+                },
+                { role: "user", content: text },
+              ],
+            });
+            const memory = response.choices?.[0]?.message?.content?.trim();
+            if (memory && memory !== "NONE" && memory.length < 500) {
+              saveMemory(memory);
+              console.log(`💾 MEMORY SAVED → ${memory}`);
+            }
+          } catch (error) {
+            console.error("⚠️ MEMORY ERROR:", error.message);
           }
-        } catch (error) {
-          console.error("⚠️ MEMORY ERROR:", error.message);
         }
-      }
-    : null,
+      : null,
 });
 
 // Express App
@@ -101,13 +104,19 @@ app.use(
 );
 app.use(
   "/api",
-  createHealthRouter({ memoryEnabled: MEMORY_CAPTURE_ENABLED, model: DEFAULT_MODEL })
+  createHealthRouter({
+    memoryEnabled: MEMORY_CAPTURE_ENABLED,
+    model: DEFAULT_MODEL,
+    demoMode: DEMO_MODE,
+  })
 );
 
 module.exports = app;
 
 if (require.main === module) {
   app.listen(PORT, HOST, () => {
-    console.log(`\n🤖 OMNI // NEXUS v6.2 → http://${HOST}:${PORT}\n`);
+    console.log(
+      `\n🤖 OMNI // NEXUS v6.2 ${DEMO_MODE ? "[MODO DEMO LOCAL ✦]" : ""} → http://${HOST}:${PORT}\n`
+    );
   });
 }

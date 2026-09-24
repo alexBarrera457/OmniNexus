@@ -141,3 +141,38 @@ test("empty AI response: throws 'La IA no devolvió contenido'", async () => {
   );
   db.close();
 });
+
+test("demo mode: resolves calculator, clock and chat offline without AI client", async () => {
+  const db = createDatabase(":memory:");
+  const conversations = createConversationRepository(db);
+  const memories = createMemoryRepository(db);
+  const service = createNexusService({
+    client: null,
+    conversations,
+    memories,
+    calculate,
+    webSearch: async () => [],
+    demoMode: true,
+  });
+  const id = conversations.createConversation();
+
+  // Test math in demo mode
+  const mathRes = await service.execute(id, "cuánto es (10 * 5) + 2");
+  assert.ok(mathRes.respuesta.includes("52"));
+  assert.deepEqual(mathRes.tools, ["CALCULATOR"]);
+
+  // Test clock in demo mode
+  const clockRes = await service.execute(id, "¿Qué hora es?");
+  assert.ok(clockRes.respuesta.includes("fecha y hora actual"));
+  assert.deepEqual(clockRes.tools, ["CLOCK"]);
+
+  // Test greetings in demo mode
+  const greetRes = await service.execute(id, "Hola nexus");
+  assert.ok(greetRes.respuesta.includes("Modo Demo"));
+  assert.deepEqual(greetRes.tools, ["CHAT"]);
+
+  // Verify messages were stored
+  const messages = conversations.getMessages(id);
+  assert.equal(messages.length, 6);
+  db.close();
+});
