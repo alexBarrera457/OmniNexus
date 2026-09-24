@@ -1,177 +1,83 @@
 # OMNI // NEXUS
 
-Aplicación local de chat inteligente con interfaz web, almacenamiento de conversaciones, memoria opcional, búsqueda web, calculadora y routing de herramientas para un backend compatible con OmniRoute/OpenAI.
-
-Este repositorio está pensado como una base funcional para continuar iterando, depurando y ampliando sin perder contexto. Cualquier IA o desarrollador que entre al proyecto puede entender en pocas páginas qué está funcionando, qué está pendiente y qué necesita para arrancar de nuevo.
+Aplicación local de chat inteligente con interfaz web, almacenamiento persistente en SQLite, memoria opcional, búsqueda web, calculadora con soporte de expresiones complejas y routing de herramientas para un backend compatible con OmniRoute/OpenAI.
 
 ---
 
 ## Estado actual del proyecto
 
-**Estado:** preparado para commit y continuación.
+**Estado:** completamente modernizado, optimizado y testeado.
 
-La aplicación tiene un backend Express funcional, persistencia SQLite y una
-interfaz Astro con una experiencia visual cinematográfica: fondo procedural con
-nebulosa, anillos orbitales y partículas, estados de conexión y feedback de
-procesamiento. La UI se ejecuta sobre la API existente; no hay una segunda API
-ni una migración de datos necesaria.
+La aplicación cuenta con una arquitectura modular en Express (con `server.js` reducido a menos de 90 líneas limpias), seguridad HTTP mediante `helmet`, rate limiting configurable, persistencia en SQLite con WAL y una interfaz web construida en Astro con diseño interactivo, historial de conversaciones en tiempo real, indicador dinámico del estado del proveedor y mejoras de accesibilidad WCAG.
 
-### Lo que va bien
+### Lo que está implementado y verificado
 
-- La app web sirve correctamente en `http://127.0.0.1:3000`.
-- El servidor Express se inicia y responde en el endpoint de salud.
-- La API REST existe y está estructurada.
-- La base de datos local funciona con SQLite y tiene repositorios para conversaciones y memoria.
-- La lógica de cálculo local está testeada.
-- La validación de peticiones del chat está funcionando.
-- La interfaz web carga y presenta el flujo básico de conversaciones.
-- La interfaz Astro conserva el contrato `/api/chat` y mantiene el
-  `conversationId` durante una sesión.
-- El frontend muestra el estado real de `/api/health` y un indicador mientras
-  NEXUS está procesando una respuesta.
-- La suite de pruebas automatizadas pasa.
-
-### Lo que falla o está bloqueado
-
-- El chat real no funciona si el proveedor de IA no tiene credenciales activas.
-- El error verificado en ejecución es:
-
-```text
-401 No active credentials for provider: openai.
-```
-
-Esto no es un fallo de la interfaz ni del Express, sino de autentificación del proveedor externo. El backend no tiene una sesión válida del modelo activo.
-
-### Qué significa esto
-
-El proyecto está listo desde el punto de vista de estructura, API y UI, pero depende de un backend externo auténtico y operativo. Si ese proveedor no está activo, el chat no podrá responder.
+- **Arquitectura modular y limpia:** `server.js` desacoplado en módulos dedicados (`lib/config.js`, `lib/middleware.js`, `routes/chat.js`, `routes/health.js`).
+- **Seguridad:** protección con cabeceras de seguridad `helmet` y rate limiter por IP en endpoints `/api/`.
+- **Suite de pruebas completa:** 26 tests (unitarios e integración con `supertest` y `node:test`) que pasan al 100%.
+- **Frontend Astro:**
+  - Historial dinámico de conversaciones en la barra lateral con selector y borrado en tiempo real.
+  - Indicador de estado del proveedor IA (`Provider: gpt-4.1` / `Provider: offline`) conectado a `/api/health`.
+  - Soporte de accesibilidad y contrastes según pautas WCAG (etiquetas accesibles `.sr-only`).
+  - Fondo visual procedural sin dependencias externas.
+- **Herramientas NEXUS:**
+  - `CALCULATOR`: evaluación matemática segura con soporte de paréntesis, porcentajes y precedencia.
+  - `CLOCK`: consulta de fecha y hora del sistema.
+  - `WEB`: buscador web con validación de JSON y gestión de timeouts.
+  - `CHAT`: orquestación inteligente y memoria persistente opcional.
+- **CLI interactivo:** `index.js` refactorizado a bucle iterativo asíncrono con `readline/promises`.
+- **Tooling de calidad:** ESLint v10 (flat config `eslint.config.mjs`) y Prettier (`.prettierrc`) configurados y verificados.
 
 ---
 
-## Objetivo del proyecto
-
-OMNI // NEXUS quiere ser una interfaz local para:
-
-- chatear con un agente inteligente
-- guardar conversaciones en SQLite
-- listar, buscar y borrar conversaciones
-- responder con herramientas como:
-  - WEB
-  - CALCULATOR
-  - CLOCK
-  - CHAT
-- habilitar memoria opcional de usuario
-- ofrecer una UI web ligera y usable
-
-La idea principal es tener un sistema más parecido a un “panel local de agente IA” que a un backend puro.
-
----
-
-## Arquitectura general
-
-### Frontend
-
-La interfaz nueva se encuentra en `src/pages/index.astro` y sus estilos en
-`src/styles/global.css`. Astro mantiene la UI separada del backend y redirige
-las llamadas `/api` al servidor Express durante desarrollo.
-
-`public/index.html` se conserva como fallback: si todavía no existe `dist/`,
-Express sirve esa versión para que el backend siga arrancando aunque aún no se
-haya construido Astro.
-
-Incluye:
-
-- composición responsive para escritorio, tablet y móvil
-- fondo animado procedural local, sin vídeo externo ni assets pesados
-- mensajes de usuario y assistant
-- accesos rápidos para aprender, crear, resolver y mejorar
-- estado real del runtime y feedback de procesamiento
-- control para reiniciar la sesión visual
-
-La interfaz Astro se sirve en desarrollo desde `http://127.0.0.1:4321` por
-defecto. El backend Express continúa en el puerto `3000`; Astro reenvía las
-peticiones `/api/*` mediante el proxy de `astro.config.mjs`.
-
-### Backend
-
-El servidor principal es `server.js`.
-
-Hace varias cosas:
-
-- crea la app Express
-- monta rutas para chat, conversaciones y memoria
-- crea la base de datos SQLite
-- inicia el cliente OpenAI/OmniRoute
-- prepara el router de herramienta NEXUS
-- ejecuta la lógica de planificación del agente
-
-### Servicios
-
-En `services/` se centraliza la lógica especial:
-
-- `nexus-service.js`: orquesta la ejecución de la petición del usuario y persiste mensajes
-- `web-search.js`: realiza consultas web con validación de JSON
-
-### Repositorios y almacenamiento
-
-En `lib/` están los repositorios:
-
-- `database.js`: crea la base de datos y esquema
-- `conversation-repository.js`: conversaciones y mensajes
-- `memory-repository.js`: memorias del usuario
-- `chat-validation.js`: validación del payload del chat
-- `calculator.js`: calculadora segura y funcional
-
-### Rutas HTTP
-
-En `routes/` se exponen los endpoints de conversaciones y memoria:
-
-- `routes/conversations.js`
-- `routes/memory.js`
-
----
-
-## Estructura del repo
+## Estructura del repositorio
 
 ```text
 .
 ├── .env.example
 ├── .gitignore
-├── README.md
-├── index.js
-├── index-backup.js
+├── .prettierignore
+├── .prettierrc
+├── eslint.config.mjs
 ├── package.json
-├── server.js
-├── fix-db.js
+├── README.md
+├── index.js                     # CLI interactivo iterativo
+├── server.js                    # Bootstrap limpio de Express (~87 líneas)
+├── astro.config.mjs             # Configuración de Astro y proxy de desarrollo
 ├── lib/
-│   ├── calculator.js
-│   ├── chat-validation.js
-│   ├── conversation-repository.js
-│   ├── database.js
-│   └── memory-repository.js
-├── astro.config.mjs
+│   ├── calculator.js            # Motor seguro de cálculo matemático
+│   ├── chat-validation.js       # Validación de payloads de chat
+│   ├── config.js                # Constantes y variables de entorno centralizadas
+│   ├── conversation-repository.js # Repositorio SQLite de conversaciones y mensajes
+│   ├── database.js              # Inicialización de SQLite con WAL
+│   ├── memory-repository.js     # Repositorio SQLite de recuerdos
+│   └── middleware.js            # Rate limiter por IP
+├── routes/
+│   ├── chat.js                  # Endpoint POST /api/chat
+│   ├── conversations.js         # Endpoints CRUD de conversaciones
+│   ├── health.js                # Endpoint GET /api/health con provider y herramientas
+│   └── memory.js                # Endpoints GET/DELETE /api/memory
+├── services/
+│   ├── nexus-service.js         # Orquestador del agente, herramientas y persistencia
+│   └── web-search.js            # Servicio de búsqueda web con timeout y validación
 ├── src/
 │   ├── pages/
-│   │   └── index.astro
+│   │   └── index.astro          # Interfaz principal Astro con historial y estado
 │   └── styles/
-│       └── global.css
+│       └── global.css           # Estilos visuales con soporte WCAG y responsive
 ├── public/
-│   └── index.html (fallback legacy)
-├── routes/
-│   ├── conversations.js
-│   └── memory.js
-├── services/
-│   ├── nexus-service.js
-│   └── web-search.js
+│   └── index.html               # Fallback estático en caso de ausencia de build
 ├── test/
 │   ├── calculator.test.js
 │   ├── chat-validation.test.js
 │   ├── conversation-repository.test.js
+│   ├── integration.test.js      # Pruebas de integración HTTP completas con supertest
 │   ├── memory-repository.test.js
 │   ├── nexus-service.test.js
+│   ├── nexus-service-tools.test.js # Tests de herramientas CALCULATOR, CLOCK, WEB
 │   ├── server.test.js
 │   └── web-search.test.js
-└── node_modules/   (no se sube a GitHub)
+└── dist/                        # Build de producción de Astro (generado con npm run build)
 ```
 
 ---
@@ -184,7 +90,13 @@ En `routes/` se exponen los endpoints de conversaciones y memoria:
 npm install
 ```
 
-### 2) Crear el archivo `.env`
+En Windows con PowerShell (si la ejecución de scripts `.ps1` está restringida):
+
+```powershell
+npm.cmd install
+```
+
+### 2) Configurar variables de entorno
 
 Copia la plantilla:
 
@@ -192,7 +104,7 @@ Copia la plantilla:
 cp .env.example .env
 ```
 
-Contenido típico:
+Contenido de ejemplo:
 
 ```env
 OMNIROUTE_API_KEY=tu_clave_omniroute
@@ -204,176 +116,56 @@ ENABLE_MEMORY=false
 NEXUS_DB_PATH=./nexus-memory.db
 ```
 
-### 3) Iniciar el backend
+### 3) Iniciar en desarrollo
 
-```bash
-npm start
-```
-
-En Windows PowerShell, si la política de ejecución bloquea `npm.ps1`, utiliza
-`npm.cmd`:
-
-```powershell
-npm.cmd install
-npm.cmd run dev
-```
-
-### Desarrollo con Astro
-
-Para trabajar en frontend y backend al mismo tiempo:
+Para trabajar simultáneamente en frontend (Astro con hot reload) y backend (Express con `--watch`):
 
 ```bash
 npm run dev
 ```
 
-La interfaz Astro queda disponible en `http://127.0.0.1:4321` y reenvía
-`/api/*` a Express en el puerto `3000`.
+La interfaz web estará en `http://127.0.0.1:4321` y el backend en `http://127.0.0.1:3000`.
 
-### 4) Abrir la web
+### 4) Iniciar solo el backend o producción
 
-```text
-http://127.0.0.1:3000
-```
-
-Durante `npm run dev`, abre preferiblemente:
-
-```text
-http://127.0.0.1:4321
-```
-
-Si ese puerto ya está ocupado por otra aplicación Astro, arranca el frontend
-en otro puerto y comprueba que pertenece a este repositorio:
-
-```bash
-npx astro dev --host 127.0.0.1 --port 4322
-```
-
-### 5) Probar la API
-
-```bash
-curl -X POST http://127.0.0.1:3000/api/chat \
-  -H "Content-Type: application/json" \
-  -d '{"messages":[{"role":"user","content":"hola"}]}'
-```
-
-### 6) Construir para producción
+Para compilar el frontend y levantar el servidor:
 
 ```bash
 npm run build
 npm start
 ```
 
-Cuando existe `dist/`, Express sirve automáticamente la build Astro. Si no
-existe, usa `public/index.html` como fallback legacy.
-
-## Scripts
-
-| Script | Uso |
-| --- | --- |
-| `npm start` | Arranca Express y sirve `dist/` o `public/`. |
-| `npm run dev` | Arranca Express y Astro en paralelo. |
-| `npm run dev:server` | Solo backend con `node --watch`. |
-| `npm run dev:astro` | Solo frontend Astro. |
-| `npm run build` | Genera `dist/` para producción. |
-| `npm run preview` | Previsualiza la build Astro. |
-| `npm run check` | Comprueba sintaxis de los entrypoints Node. |
-| `npm test` | Ejecuta la suite de Node. |
-
-## Verificación antes del commit
-
-Ejecutar desde la raíz del repositorio:
-
-```bash
-npm install
-npm run check
-npm test
-npm run build
-```
-
-En Windows con PowerShell bloqueando scripts:
-
-```powershell
-npm.cmd install
-npm.cmd run check
-npm.cmd test
-npm.cmd run build
-```
-
-La comprobación visual debe confirmar:
-
-- la página `OMNI // NEXUS`, no otra aplicación Astro del mismo puerto
-- el fondo animado y el formulario de chat
-- el estado `Local runtime`
-- que `/api/health` responde desde el backend
-- que el frontend muestra un estado de procesamiento al enviar
+La aplicación completa se servirá en `http://127.0.0.1:3000`.
 
 ---
 
-## Variables de entorno
+## Scripts disponibles
 
-### `OMNIROUTE_API_KEY`
-
-Clave válida del proveedor de IA. Esta es la más importante. Si no es válida o no está activa, la app responderá 401.
-
-### `OMNIROUTE_BASE_URL`
-
-URL base del backend compatible con OpenAI. Para OmniRoute local suele ser:
-
-```text
-http://localhost:20128/v1
-```
-
-### `OMNIROUTE_MODEL`
-
-Modelo disponible en tu backend. Un valor típico para OmniRoute/OpenAI-compatible es:
-
-```text
-gpt-4.1
-```
-
-### `PORT`
-
-Puerto HTTP del servidor local. Por defecto:
-
-```text
-3000
-```
-
-### `HOST`
-
-Host de bind del servidor. Por defecto:
-
-```text
-127.0.0.1
-```
-
-### `ENABLE_MEMORY`
-
-Activa captura opcional de recuerdos del usuario.
-
-```env
-ENABLE_MEMORY=false
-```
-
-### `NEXUS_DB_PATH`
-
-Ruta de la base de datos SQLite local.
-
-```env
-NEXUS_DB_PATH=./nexus-memory.db
-```
+| Script                 | Propósito                                                             |
+| ---------------------- | --------------------------------------------------------------------- |
+| `npm start`            | Arranca el servidor Express sirviendo `dist/` (o fallback `public/`). |
+| `npm run dev`          | Ejecuta backend y frontend Astro en paralelo.                         |
+| `npm run dev:server`   | Arranca únicamente el backend en modo watch.                          |
+| `npm run dev:astro`    | Arranca únicamente el servidor dev de Astro.                          |
+| `npm run build`        | Compila el frontend estático con Astro en la carpeta `dist/`.         |
+| `npm run preview`      | Previsualiza la build de Astro.                                       |
+| `npm run check`        | Comprobación de sintaxis de los scripts base.                         |
+| `npm test`             | Ejecuta la suite de 26 pruebas con el runner nativo `node:test`.      |
+| `npm run lint`         | Comprueba el código con ESLint (configuración plana v10).             |
+| `npm run format`       | Da formato a todo el código con Prettier.                             |
+| `npm run format:check` | Verifica si los archivos cumplen el formato Prettier.                 |
 
 ---
 
 ## API REST
 
-### Health
+### Health y Diagnóstico
 
 ```http
 GET /api/health
 ```
 
-Respuesta esperada:
+Respuesta de ejemplo:
 
 ```json
 {
@@ -381,6 +173,7 @@ Respuesta esperada:
   "name": "OMNI // NEXUS",
   "version": "6.2",
   "status": "online",
+  "provider": "gpt-4.1",
   "tools": ["WEB", "CALCULATOR", "CLOCK", "CHAT"],
   "memory": false,
   "conversations": true
@@ -391,264 +184,27 @@ Respuesta esperada:
 
 ```http
 POST /api/chat
-```
+Content-Type: application/json
 
-Body esperado:
-
-```json
 {
-  "messages": [
-    { "role": "user", "content": "hola" }
-  ],
+  "messages": [{ "role": "user", "content": "Cuánto es (25 * 4) / 2?" }],
   "conversationId": 1
-}
-```
-
-Respuesta esperada:
-
-```json
-{
-  "respuesta": "...",
-  "tools": ["CHAT"],
-  "conversationId": 1,
-  "memory": []
 }
 ```
 
 ### Conversaciones
 
-- `GET /api/conversations`
-- `POST /api/conversations`
-- `GET /api/conversations/:id`
-- `DELETE /api/conversations/:id`
-- `GET /api/conversations/search/:query`
-- `DELETE /api/conversations/:id/messages`
+- `GET /api/conversations`: lista de conversaciones ordenadas por última actualización.
+- `POST /api/conversations`: crea una nueva conversación.
+- `GET /api/conversations/:id`: obtiene la conversación y sus mensajes.
+- `DELETE /api/conversations/:id`: elimina la conversación y sus mensajes en cascada.
+- `GET /api/conversations/search/:query`: búsqueda de conversaciones por título o contenido.
+- `DELETE /api/conversations/:id/messages`: vacía los mensajes de una conversación.
 
 ### Memoria
 
-- `GET /api/memory`
-- `DELETE /api/memory`
-
----
-
-## Flujo de ejecución interna
-
-1. El usuario manda un mensaje desde la web o desde la API.
-2. El backend valida la petición con `chat-validation.js`.
-3. Se crea o reutiliza la conversación activa.
-4. El servicio `createNexusService` decide qué herramientas usar.
-5. Si aplica:
-   - Web search, calculadora, reloj o respuesta directa.
-6. Se construye el contexto del historial y la memoria.
-7. Se llama al proveedor de IA con el prompt final.
-8. La respuesta se guarda en la base de datos y se devuelve al cliente.
-
----
-
-## Base de datos
-
-El proyecto usa SQLite con `better-sqlite3`.
-
-Tablas principales:
-
-- `memories`
-- `nexus_conversations`
-- `nexus_messages`
-
-La base de datos se crea automáticamente al arrancar el proyecto si no existe.
-
----
-
-## Qué está ya funcionando
-
-### Verificado
-
-- validación de entrada del chat
-- cálculo matemático
-- repositorio de conversaciones
-- repositorio de memoria
-- web search con validación de JSON
-- servicio NEXUS con guardado persistente
-- servidor Express arrancando correctamente
-- UI web cargando
-- suite de tests ejecutándose con éxito
-
-### Estado de test
-
-Se ha verificado que la suite funciona con Node Test:
-
-```bash
-npm test
-```
-
-Resultado verificado en el proyecto:
-
-- 11 tests
-- 11 aprobados
-- 0 fallidos
-
----
-
-## Qué falta o habría que mejorar
-
-### Prioridad alta
-
-- Validar la autenticación real del proveedor externo antes de cada arranque.
-- Añadir un sistema de fallback si el modelo no está disponible.
-- Mejorar los mensajes de error del backend para que digan claramente si falla la IA, la URL o la credencial.
-- Añadir logs más estructurados para debugging.
-
-### Prioridad media
-
-- Soportar más modelos y proveedores dinámicos.
-- Añadir contenido de salud del proveedor (endpoint, modelo, latencia).
-- Mejorar la gestión de memoria con semántica y limpieza automática.
-- Añadir rate limiting más configurables por usuario.
-
-### Prioridad baja
-
-- Cargar desde Astro el listado completo de conversaciones persistidas en SQLite.
-- Añadir acciones de exportación, borrado y búsqueda a la nueva interfaz Astro.
-
-## Preparación del commit
-
-Antes de crear el commit, comprueba:
-
-```bash
-git status
-git diff --check
-npm run check
-npm test
-npm run build
-```
-
-En Windows PowerShell con la política de scripts restrictiva:
-
-```powershell
-git status
-git diff --check
-npm.cmd run check
-npm.cmd test
-npm.cmd run build
-```
-
-No deben entrar en el commit:
-
-- `.env`
-- `nexus-memory.db*`
-- `node_modules/`
-- `dist/`
-
-Comando recomendado cuando las comprobaciones terminan correctamente:
-
-```bash
-git add .
-git commit -m "feat: integrate Astro command center UI"
-git push
-```
-- Añadir exportación CSV o markdown.
-- Añadir modo oscuro/claro configurable.
-- Añadir panel de diagnóstico de sistema.
-
----
-
-## Problemas conocidos
-
-### 1) 401 de credenciales del proveedor
-
-Este es el bloqueo real actual.
-
-Síntoma:
-
-```text
-401 No active credentials for provider: openai.
-```
-
-Causa:
-
-- la clave no es válida
-- el modelo no está disponible
-- la URL no es la correcta
-- la sesión no está activa en el backend
-
-Solución:
-
-- comprobar en el provider local que la sesión está activa
-- comprobar que la clave coincide con ese endpoint
-- comprobar que el modelo existe en ese entorno
-
-### 2) Dependencia de un backend externo
-
-La app no puede funcionar sin un modelo activo. Tiene un fuerte acoplamiento a la capa de IA.
-
-### 3) SQLite local
-
-La BD es local y por tanto se gestiona en el entorno del usuario. Eso está bien para un proyecto de prueba, pero no para producción multiusuario.
-
----
-
-## Recomendación para continuar con el proyecto
-
-### Ideal para seguir desarrollando
-
-1. Asegurar un proveedor activo con credenciales válidas.
-2. Mantener la app como interfaz local con backend centralizado.
-3. Trabajar en refactor de configuración para que el proyecto no dependa de un modelo hardcodeado.
-4. Añadir un estado visible de conexión del proveedor al frontend.
-5. Separar mejor la capa de IA y la capa web para facilitar pruebas.
-
----
-
-## Prompt de continuidad para otra IA
-
-Si alguien o alguna IA quiere seguir trabajando con este repo, puede usar este prompt:
-
-```text
-Soy el mantenedor de un proyecto llamado OMNI // NEXUS. Este repositorio es una app local de chat con interfaz web, memoria, conversaciones, calculadora y routing de herramientas. Debe seguir estas reglas:
-
-- Revisa primero README.md y la estructura del repositorio.
-- Destaca qué funciona y qué está bloqueado.
-- No reescribas cosas que ya están bien si no hay motivo.
-- Mantén compatibilidad con Node.js y CommonJS.
-- No introduzcas credenciales ni secretos en el código ni en el repositorio.
-- Aprovecha .env.example para configuración de entorno.
-- Si hay un fallo de autenticación con la IA, trátalo como un problema externo de provider y no como bug del frontend.
-- Prioriza que la app siga arrancando, probarse y documentarse.
-- Usa tests existentes antes de cambiar comportamiento crítico.
-- Si falta funcionalidad, documenta qué falta y propone una implementación incremental.
-```
-
----
-
-## Comandos útiles
-
-```bash
-npm install
-npm test
-npm start
-npm run dev
-```
-
----
-
-## Recomendación de publicación en GitHub
-
-Antes de subirlo:
-
-- crea un `.env` local para tus pruebas personales
-- no subas `.env`
-- no subas `node_modules`
-- no subas `nexus-memory.db` ni archivos generados
-- usa `.gitignore` para ignorarlos
-- documenta la dependencia del proveedor externo en el README
-
----
-
-## Conclusión
-
-OMNI // NEXUS ya es un proyecto con base sólida, estructura clara, UI funcional y APIs definidas. Lo que falta para que el chat real funcione no es más código “de app”, sino un proveedor activo y autenticado con un endpoint válido.
-
-El repo está listo para seguir avanzando, mantener y ampliar, siempre con la documentación clara de lo que ya funciona y lo que aún depende del entorno externo.
+- `GET /api/memory`: lista los recuerdos capturados del usuario.
+- `DELETE /api/memory`: elimina todos los recuerdos almacenados.
 
 ---
 

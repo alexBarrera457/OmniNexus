@@ -47,6 +47,15 @@ const quickPrompts = [
           ))}
         </div>
 
+        <div class="side-heading">
+          <span>CONVERSACIONES</span>
+          <i></i>
+        </div>
+
+        <div class="conversation-history" id="conversationList" role="region" aria-label="Historial de conversaciones">
+          <div class="empty-history" id="emptyHistory">Sin conversaciones aún</div>
+        </div>
+
         <div class="sidebar-footer">
           <div class="footer-line"><span class="live-dot"></span><span>LOCAL RUNTIME</span><strong>READY</strong></div>
           <div class="footer-line muted"><span>MODEL ROUTE</span><strong>OMNI / AUTO</strong></div>
@@ -57,6 +66,7 @@ const quickPrompts = [
         <header class="topbar">
           <div class="crumb"><span>WORKSPACE</span><b>/</b><strong>NEW SESSION</strong></div>
           <div class="topbar-actions">
+            <span class="status-pill" id="providerStatus">Provider: —</span>
             <span class="status-pill" id="runtimeStatus"><span class="status-dot"></span>Local runtime</span>
             <button class="top-icon" type="button" aria-label="Más opciones">•••</button>
           </div>
@@ -75,6 +85,7 @@ const quickPrompts = [
         <div class="composer-shell">
           <div class="composer">
             <div class="composer-prefix">N</div>
+            <label for="input" class="sr-only">Prompt</label>
             <textarea id="input" rows="1" placeholder="Ask NEXUS anything..."></textarea>
             <button class="send-btn" id="send" type="button" aria-label="Enviar mensaje">↑</button>
           </div>
@@ -264,6 +275,7 @@ const quickPrompts = [
           state.conversationId = payload.conversationId || state.conversationId;
           appendMessage('assistant', answer);
           setRuntimeStatus(true);
+          loadConversations();
         } catch (error) {
           setRuntimeStatus(false);
           appendMessage('assistant', `⚠️ ${error.message}`);
@@ -276,10 +288,86 @@ const quickPrompts = [
         }
       }
 
+      function highlightActiveConversation() {
+        document.querySelectorAll('.history-item').forEach((item) => {
+          const id = Number(item.getAttribute('data-id'));
+          item.classList.toggle('active', id === state.conversationId);
+        });
+      }
+
+      async function selectConversation(id) {
+        try {
+          const res = await fetch(`/api/conversations/${id}`, { cache: 'no-store' });
+          if (!res.ok) throw new Error('No se pudo cargar la conversación');
+          const data = await res.json();
+          state.conversationId = id;
+          state.activeMessages = (data.messages || []).map((m) => ({ role: m.role, content: m.content }));
+          renderMessages();
+          highlightActiveConversation();
+        } catch (err) {
+          console.error(err);
+        }
+      }
+
+      async function deleteConversation(id, event) {
+        event.stopPropagation();
+        try {
+          await fetch(`/api/conversations/${id}`, { method: 'DELETE' });
+          if (state.conversationId === id) {
+            state.conversationId = null;
+            state.activeMessages = [];
+            renderMessages();
+          }
+          loadConversations();
+        } catch (err) {
+          console.error('Error al eliminar conversación:', err);
+        }
+      }
+
+      async function loadConversations() {
+        const container = document.getElementById('conversationList');
+        if (!container) return;
+        try {
+          const res = await fetch('/api/conversations', { cache: 'no-store' });
+          if (!res.ok) return;
+          const data = await res.json();
+          const list = data.conversations || [];
+          if (list.length === 0) {
+            container.innerHTML = '<div class="empty-history" id="emptyHistory">Sin conversaciones aún</div>';
+            return;
+          }
+          container.innerHTML = '';
+          list.forEach((c) => {
+            const item = document.createElement('div');
+            item.className = `history-item ${c.id === state.conversationId ? 'active' : ''}`;
+            item.setAttribute('data-id', c.id);
+            item.setAttribute('role', 'button');
+            item.setAttribute('tabindex', '0');
+            item.innerHTML = `
+              <span class="history-title" title="${escapeHtml(c.title)}">${escapeHtml(c.title)}</span>
+              <button class="history-del-btn" type="button" aria-label="Eliminar conversación">✕</button>
+            `;
+            item.addEventListener('click', () => selectConversation(c.id));
+            item.addEventListener('keydown', (e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                selectConversation(c.id);
+              }
+            });
+            const delBtn = item.querySelector('.history-del-btn');
+            delBtn.addEventListener('click', (e) => deleteConversation(c.id, e));
+            container.appendChild(item);
+          });
+        } catch (err) {
+          console.error('Error al obtener conversaciones:', err);
+        }
+      }
+
       document.getElementById('newChat').addEventListener('click', () => {
         state.activeMessages = [];
         state.conversationId = null;
         renderMessages();
+        highlightActiveConversation();
       });
 
       document.querySelectorAll('[data-prompt]').forEach((button) => {
@@ -305,16 +393,25 @@ const quickPrompts = [
       });
 
       async function checkRuntime() {
+        const providerEl = document.getElementById('providerStatus');
         try {
           const response = await fetch('/api/health', { cache: 'no-store' });
           if (!response.ok) throw new Error('offline');
+          const data = await response.json();
           setRuntimeStatus(true);
+          if (providerEl) {
+            providerEl.textContent = `Provider: ${data.provider || 'online'}`;
+          }
         } catch {
           setRuntimeStatus(false);
+          if (providerEl) {
+            providerEl.textContent = 'Provider: offline';
+          }
         }
       }
 
       checkRuntime();
+      loadConversations();
       window.setInterval(checkRuntime, 15000);
     </script>
   </body>

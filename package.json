@@ -11,7 +11,10 @@
     "build": "astro build",
     "preview": "astro preview --host 0.0.0.0",
     "check": "node --check server.js && node --check index.js",
-    "test": "node --test"
+    "test": "node --test",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "keywords": [],
   "author": "",
@@ -24,8 +27,11 @@
     "openai": "^7.18.0"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "astro": "^5.15.0",
     "concurrently": "^9.2.0",
+    "eslint": "^10.11.0",
+    "prettier": "^3.9.9",
     "supertest": "^7.3.0"
   }
 }

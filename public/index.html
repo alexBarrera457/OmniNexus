@@ -1,271 +1,753 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OMNI // NEXUS</title>
-<style>
-:root{
-  --bg:#030712;--panel:#071226;--panel2:#0a1730;--line:#172946;
-  --blue:#2563eb;--blue2:#4b8cff;--text:#eaf1ff;--muted:#7183a4;
-  --green:#35e08a;--danger:#ff6478;--shadow:0 18px 55px rgba(0,0,0,.32)
-}
-*{box-sizing:border-box}
-html,body{margin:0;width:100%;height:100%;font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text)}
-body{
-  overflow:hidden;
-  background-image:
-    radial-gradient(circle at 50% 25%,rgba(37,99,235,.13),transparent 32%),
-    linear-gradient(rgba(34,76,130,.075) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(34,76,130,.075) 1px,transparent 1px);
-  background-size:auto,48px 48px,48px 48px
-}
-button,input,textarea{font:inherit}
-button{color:inherit}
-.app{height:100vh;display:flex}
-.sidebar{
-  width:310px;flex:0 0 310px;border-right:1px solid var(--line);
-  background:rgba(2,8,22,.96);display:flex;flex-direction:column;padding:20px
-}
-.brand{display:flex;align-items:center;gap:13px;font-weight:900;letter-spacing:5px;font-size:18px}
-.brand-mark{
-  width:44px;height:44px;border:1px solid #4a91ff;border-radius:14px;display:grid;
-  place-items:center;color:#8dbbff;box-shadow:0 0 26px rgba(37,99,235,.28)
-}
-.brand-mark:after{content:"✦";font-size:17px}
-.new-chat,.side-btn{
-  border:1px solid #294574;background:#091735;color:#d5e3ff;border-radius:12px;
-  padding:14px;cursor:pointer;transition:.2s
-}
-.new-chat{margin-top:24px;font-weight:700}
-.new-chat:hover,.side-btn:hover{background:#0d2147;border-color:#3973c8;transform:translateY(-1px)}
-.search{
-  margin-top:12px;width:100%;border:1px solid #1d3457;background:#060f21;
-  border-radius:11px;padding:11px 12px;color:var(--text);outline:none
-}
-.search:focus{border-color:#3973c8}
-.section-label{margin:23px 0 11px;color:#7185aa;font-size:11px;letter-spacing:3px}
-.conversations{overflow:auto;flex:1;padding-right:2px}
-.conversation{
-  border:1px solid transparent;background:transparent;border-radius:12px;padding:13px;
-  display:flex;justify-content:space-between;gap:8px;cursor:pointer;margin-bottom:6px
-}
-.conversation:hover{background:#08142b;border-color:#20385f}
-.conversation.active{background:#0a1833;border-color:#28518b;box-shadow:inset 3px 0 0 #3b82f6}
-.conversation-title{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.conversation-meta{font-size:11px;color:var(--muted);margin-top:5px}
-.delete{color:#526887;border:0;background:none;cursor:pointer;font-size:18px}
-.delete:hover{color:var(--danger)}
-.sidebar-bottom{display:grid;gap:9px;margin-top:12px}
-.stats{
-  border:1px solid #20385f;border-radius:13px;padding:13px;background:#071329;
-  display:grid;grid-template-columns:1fr 1fr;gap:10px
-}
-.stat small{display:block;color:#617392;font-size:10px;letter-spacing:1.5px}
-.stat strong{display:block;margin-top:4px;font-size:18px}
-.status-card{
-  border:1px solid #20385f;border-radius:13px;padding:13px;background:#071329;font-size:11px;letter-spacing:1px
-}
-.status-title{color:#b8c7e2;margin-bottom:8px}
-.online{color:var(--green);font-weight:800}
-.offline{color:var(--danger);font-weight:800}
-.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green);margin-right:8px;box-shadow:0 0 12px var(--green)}
-.dot.off{background:var(--danger);box-shadow:none}
-.main{min-width:0;flex:1;display:flex;flex-direction:column}
-.topbar{
-  height:87px;border-bottom:1px solid var(--line);display:flex;align-items:center;
-  justify-content:space-between;padding:0 32px;background:rgba(2,8,20,.78);backdrop-filter:blur(10px)
-}
-.top-brand{display:flex;align-items:center;gap:13px;font-weight:900;letter-spacing:5px;font-size:19px}
-.route{display:flex;align-items:center;gap:10px}
-.badge{border:1px solid #1e3558;border-radius:20px;padding:8px 13px;color:#a9c1e7;font-size:11px}
-.icon-btn{
-  width:38px;height:38px;border:1px solid #1e3558;background:#071329;border-radius:11px;
-  cursor:pointer;color:#9db5db
-}
-.icon-btn:hover{border-color:#3973c8;color:white}
-.messages{flex:1;overflow:auto;padding:45px 7%;scroll-behavior:smooth}
-.empty{min-height:100%;display:grid;place-items:center;color:#617392;text-align:center}
-.empty-inner{max-width:760px}
-.empty h1{font-size:42px;color:#e4edff;letter-spacing:7px;margin:0 0 8px}
-.empty p{margin:0 0 28px;color:#7084a8}
-.quick-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-.quick{
-  text-align:left;border:1px solid #20385f;background:rgba(7,19,40,.8);border-radius:13px;
-  padding:15px;cursor:pointer;transition:.2s
-}
-.quick:hover{border-color:#3b82f6;background:#0b1b39;transform:translateY(-2px)}
-.quick strong{display:block;color:#dce8ff;margin-bottom:5px}
-.quick span{font-size:12px;color:#7185a8}
-.message{
-  max-width:980px;margin:0 auto 18px;border-radius:19px;padding:18px 21px;
-  line-height:1.65;animation:appear .25s ease;position:relative
-}
-@keyframes appear{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-.user{margin-left:auto;background:linear-gradient(135deg,#2457db,#2e6cf0);box-shadow:0 12px 35px rgba(27,77,203,.25)}
-.assistant{margin-right:auto;background:rgba(7,20,43,.92);border:1px solid #1c355a}
-.error{border-color:#5c2937;background:#170b12}
-.message-head{font-size:10px;letter-spacing:2px;color:#8ba5ce;margin-bottom:8px}
-.user .message-head{color:#c8dcff}
-.message-body{white-space:pre-wrap;word-break:break-word}
-.message-body code{background:#020711;border:1px solid #1b3153;border-radius:5px;padding:2px 5px}
-.message-body pre{white-space:pre-wrap;background:#020711;border:1px solid #1b3153;border-radius:10px;padding:15px;overflow:auto}
-.message-actions{display:flex;gap:6px;margin-top:11px;opacity:.65}
-.message:hover .message-actions{opacity:1}
-.action{
-  border:1px solid #1c355a;background:#071329;color:#8198bc;border-radius:8px;
-  padding:5px 8px;font-size:11px;cursor:pointer
-}
-.action:hover{color:white;border-color:#3973c8}
-.composer-wrap{padding:0 7% 25px}
-.composer{
-  display:flex;align-items:flex-end;gap:10px;border:1px solid #203b64;
-  background:rgba(7,19,41,.94);border-radius:20px;padding:9px 9px 9px 19px;
-  box-shadow:var(--shadow);backdrop-filter:blur(10px)
-}
-textarea{
-  flex:1;resize:none;min-height:45px;max-height:150px;background:transparent;border:0;
-  outline:0;color:var(--text);font:16px inherit;padding:11px 0
-}
-textarea::placeholder{color:#617392}
-.send{
-  width:52px;height:52px;border:0;border-radius:15px;background:#2d68eb;color:white;
-  cursor:pointer;font-size:24px;transition:.2s
-}
-.send:hover{transform:translateY(-2px);background:#3b76f2;box-shadow:0 8px 25px rgba(37,99,235,.3)}
-.send:disabled{opacity:.45;cursor:not-allowed;transform:none}
-.hint{font-size:10px;color:#566b8d;letter-spacing:1.7px;margin:10px 4px 0;display:flex;justify-content:space-between}
-.typing{display:inline-flex;gap:5px;padding:5px 0}.typing span{width:7px;height:7px;background:#7daeff;border-radius:50%;animation:b 1s infinite}
-.typing span:nth-child(2){animation-delay:.15s}.typing span:nth-child(3){animation-delay:.3s}
-@keyframes b{0%,60%,100%{opacity:.25;transform:translateY(0)}30%{opacity:1;transform:translateY(-4px)}}
-.palette{
-  position:fixed;inset:0;background:rgba(0,0,0,.62);display:none;align-items:flex-start;justify-content:center;
-  padding-top:13vh;z-index:20;backdrop-filter:blur(5px)
-}
-.palette.open{display:flex}
-.palette-box{width:min(620px,92vw);background:#081329;border:1px solid #294574;border-radius:16px;box-shadow:0 30px 100px #000;overflow:hidden}
-.palette-input{width:100%;border:0;border-bottom:1px solid #20385f;background:#060e20;padding:17px;color:white;outline:0}
-.palette-list{padding:8px}
-.command{width:100%;display:flex;justify-content:space-between;text-align:left;border:0;background:transparent;padding:13px;border-radius:9px;cursor:pointer}
-.command:hover{background:#10234a}.command small{color:#7185a8}
-.toast{
-  position:fixed;right:25px;bottom:25px;background:#0b1a35;border:1px solid #315b98;
-  border-radius:10px;padding:11px 14px;box-shadow:var(--shadow);display:none;z-index:30
-}
-.toast.show{display:block;animation:appear .2s ease}
-@media(max-width:900px){.sidebar{width:250px;flex-basis:250px}.messages{padding:30px 20px}.composer-wrap{padding:0 20px 18px}}
-@media(max-width:700px){.sidebar{display:none}.topbar{padding:0 18px}.top-brand{font-size:15px}.route .badge{display:none}.quick-grid{grid-template-columns:1fr}.hint span:last-child{display:none}}
-</style>
-</head>
-<body>
-<div class="app">
-<aside class="sidebar">
-  <div class="brand"><div class="brand-mark"></div><span>NEXUS</span></div>
-  <button class="new-chat" id="newChat">＋ NUEVA CONVERSACIÓN</button>
-  <input class="search" id="search" placeholder="Buscar conversaciones…">
-  <div class="section-label">CONVERSACIONES</div>
-  <div class="conversations" id="conversations"></div>
-  <div class="sidebar-bottom">
-    <div class="stats">
-      <div class="stat"><small>CHATS</small><strong id="chatCount">0</strong></div>
-      <div class="stat"><small>MENSAJES</small><strong id="messageCount">0</strong></div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OMNI // NEXUS</title>
+    <style>
+      :root {
+        --bg: #030712;
+        --panel: #071226;
+        --panel2: #0a1730;
+        --line: #172946;
+        --blue: #2563eb;
+        --blue2: #4b8cff;
+        --text: #eaf1ff;
+        --muted: #7183a4;
+        --green: #35e08a;
+        --danger: #ff6478;
+        --shadow: 0 18px 55px rgba(0, 0, 0, 0.32);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        font-family:
+          Inter,
+          Segoe UI,
+          Arial,
+          sans-serif;
+        background: var(--bg);
+        color: var(--text);
+      }
+      body {
+        overflow: hidden;
+        background-image:
+          radial-gradient(circle at 50% 25%, rgba(37, 99, 235, 0.13), transparent 32%),
+          linear-gradient(rgba(34, 76, 130, 0.075) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(34, 76, 130, 0.075) 1px, transparent 1px);
+        background-size:
+          auto,
+          48px 48px,
+          48px 48px;
+      }
+      button,
+      input,
+      textarea {
+        font: inherit;
+      }
+      button {
+        color: inherit;
+      }
+      .app {
+        height: 100vh;
+        display: flex;
+      }
+      .sidebar {
+        width: 310px;
+        flex: 0 0 310px;
+        border-right: 1px solid var(--line);
+        background: rgba(2, 8, 22, 0.96);
+        display: flex;
+        flex-direction: column;
+        padding: 20px;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        font-weight: 900;
+        letter-spacing: 5px;
+        font-size: 18px;
+      }
+      .brand-mark {
+        width: 44px;
+        height: 44px;
+        border: 1px solid #4a91ff;
+        border-radius: 14px;
+        display: grid;
+        place-items: center;
+        color: #8dbbff;
+        box-shadow: 0 0 26px rgba(37, 99, 235, 0.28);
+      }
+      .brand-mark:after {
+        content: "✦";
+        font-size: 17px;
+      }
+      .new-chat,
+      .side-btn {
+        border: 1px solid #294574;
+        background: #091735;
+        color: #d5e3ff;
+        border-radius: 12px;
+        padding: 14px;
+        cursor: pointer;
+        transition: 0.2s;
+      }
+      .new-chat {
+        margin-top: 24px;
+        font-weight: 700;
+      }
+      .new-chat:hover,
+      .side-btn:hover {
+        background: #0d2147;
+        border-color: #3973c8;
+        transform: translateY(-1px);
+      }
+      .search {
+        margin-top: 12px;
+        width: 100%;
+        border: 1px solid #1d3457;
+        background: #060f21;
+        border-radius: 11px;
+        padding: 11px 12px;
+        color: var(--text);
+        outline: none;
+      }
+      .search:focus {
+        border-color: #3973c8;
+      }
+      .section-label {
+        margin: 23px 0 11px;
+        color: #7185aa;
+        font-size: 11px;
+        letter-spacing: 3px;
+      }
+      .conversations {
+        overflow: auto;
+        flex: 1;
+        padding-right: 2px;
+      }
+      .conversation {
+        border: 1px solid transparent;
+        background: transparent;
+        border-radius: 12px;
+        padding: 13px;
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        cursor: pointer;
+        margin-bottom: 6px;
+      }
+      .conversation:hover {
+        background: #08142b;
+        border-color: #20385f;
+      }
+      .conversation.active {
+        background: #0a1833;
+        border-color: #28518b;
+        box-shadow: inset 3px 0 0 #3b82f6;
+      }
+      .conversation-title {
+        font-weight: 700;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .conversation-meta {
+        font-size: 11px;
+        color: var(--muted);
+        margin-top: 5px;
+      }
+      .delete {
+        color: #526887;
+        border: 0;
+        background: none;
+        cursor: pointer;
+        font-size: 18px;
+      }
+      .delete:hover {
+        color: var(--danger);
+      }
+      .sidebar-bottom {
+        display: grid;
+        gap: 9px;
+        margin-top: 12px;
+      }
+      .stats {
+        border: 1px solid #20385f;
+        border-radius: 13px;
+        padding: 13px;
+        background: #071329;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+      .stat small {
+        display: block;
+        color: #617392;
+        font-size: 10px;
+        letter-spacing: 1.5px;
+      }
+      .stat strong {
+        display: block;
+        margin-top: 4px;
+        font-size: 18px;
+      }
+      .status-card {
+        border: 1px solid #20385f;
+        border-radius: 13px;
+        padding: 13px;
+        background: #071329;
+        font-size: 11px;
+        letter-spacing: 1px;
+      }
+      .status-title {
+        color: #b8c7e2;
+        margin-bottom: 8px;
+      }
+      .online {
+        color: var(--green);
+        font-weight: 800;
+      }
+      .offline {
+        color: var(--danger);
+        font-weight: 800;
+      }
+      .dot {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--green);
+        margin-right: 8px;
+        box-shadow: 0 0 12px var(--green);
+      }
+      .dot.off {
+        background: var(--danger);
+        box-shadow: none;
+      }
+      .main {
+        min-width: 0;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+      }
+      .topbar {
+        height: 87px;
+        border-bottom: 1px solid var(--line);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 32px;
+        background: rgba(2, 8, 20, 0.78);
+        backdrop-filter: blur(10px);
+      }
+      .top-brand {
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        font-weight: 900;
+        letter-spacing: 5px;
+        font-size: 19px;
+      }
+      .route {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .badge {
+        border: 1px solid #1e3558;
+        border-radius: 20px;
+        padding: 8px 13px;
+        color: #a9c1e7;
+        font-size: 11px;
+      }
+      .icon-btn {
+        width: 38px;
+        height: 38px;
+        border: 1px solid #1e3558;
+        background: #071329;
+        border-radius: 11px;
+        cursor: pointer;
+        color: #9db5db;
+      }
+      .icon-btn:hover {
+        border-color: #3973c8;
+        color: white;
+      }
+      .messages {
+        flex: 1;
+        overflow: auto;
+        padding: 45px 7%;
+        scroll-behavior: smooth;
+      }
+      .empty {
+        min-height: 100%;
+        display: grid;
+        place-items: center;
+        color: #617392;
+        text-align: center;
+      }
+      .empty-inner {
+        max-width: 760px;
+      }
+      .empty h1 {
+        font-size: 42px;
+        color: #e4edff;
+        letter-spacing: 7px;
+        margin: 0 0 8px;
+      }
+      .empty p {
+        margin: 0 0 28px;
+        color: #7084a8;
+      }
+      .quick-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+      }
+      .quick {
+        text-align: left;
+        border: 1px solid #20385f;
+        background: rgba(7, 19, 40, 0.8);
+        border-radius: 13px;
+        padding: 15px;
+        cursor: pointer;
+        transition: 0.2s;
+      }
+      .quick:hover {
+        border-color: #3b82f6;
+        background: #0b1b39;
+        transform: translateY(-2px);
+      }
+      .quick strong {
+        display: block;
+        color: #dce8ff;
+        margin-bottom: 5px;
+      }
+      .quick span {
+        font-size: 12px;
+        color: #7185a8;
+      }
+      .message {
+        max-width: 980px;
+        margin: 0 auto 18px;
+        border-radius: 19px;
+        padding: 18px 21px;
+        line-height: 1.65;
+        animation: appear 0.25s ease;
+        position: relative;
+      }
+      @keyframes appear {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+      .user {
+        margin-left: auto;
+        background: linear-gradient(135deg, #2457db, #2e6cf0);
+        box-shadow: 0 12px 35px rgba(27, 77, 203, 0.25);
+      }
+      .assistant {
+        margin-right: auto;
+        background: rgba(7, 20, 43, 0.92);
+        border: 1px solid #1c355a;
+      }
+      .error {
+        border-color: #5c2937;
+        background: #170b12;
+      }
+      .message-head {
+        font-size: 10px;
+        letter-spacing: 2px;
+        color: #8ba5ce;
+        margin-bottom: 8px;
+      }
+      .user .message-head {
+        color: #c8dcff;
+      }
+      .message-body {
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+      .message-body code {
+        background: #020711;
+        border: 1px solid #1b3153;
+        border-radius: 5px;
+        padding: 2px 5px;
+      }
+      .message-body pre {
+        white-space: pre-wrap;
+        background: #020711;
+        border: 1px solid #1b3153;
+        border-radius: 10px;
+        padding: 15px;
+        overflow: auto;
+      }
+      .message-actions {
+        display: flex;
+        gap: 6px;
+        margin-top: 11px;
+        opacity: 0.65;
+      }
+      .message:hover .message-actions {
+        opacity: 1;
+      }
+      .action {
+        border: 1px solid #1c355a;
+        background: #071329;
+        color: #8198bc;
+        border-radius: 8px;
+        padding: 5px 8px;
+        font-size: 11px;
+        cursor: pointer;
+      }
+      .action:hover {
+        color: white;
+        border-color: #3973c8;
+      }
+      .composer-wrap {
+        padding: 0 7% 25px;
+      }
+      .composer {
+        display: flex;
+        align-items: flex-end;
+        gap: 10px;
+        border: 1px solid #203b64;
+        background: rgba(7, 19, 41, 0.94);
+        border-radius: 20px;
+        padding: 9px 9px 9px 19px;
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(10px);
+      }
+      textarea {
+        flex: 1;
+        resize: none;
+        min-height: 45px;
+        max-height: 150px;
+        background: transparent;
+        border: 0;
+        outline: 0;
+        color: var(--text);
+        font: 16px inherit;
+        padding: 11px 0;
+      }
+      textarea::placeholder {
+        color: #617392;
+      }
+      .send {
+        width: 52px;
+        height: 52px;
+        border: 0;
+        border-radius: 15px;
+        background: #2d68eb;
+        color: white;
+        cursor: pointer;
+        font-size: 24px;
+        transition: 0.2s;
+      }
+      .send:hover {
+        transform: translateY(-2px);
+        background: #3b76f2;
+        box-shadow: 0 8px 25px rgba(37, 99, 235, 0.3);
+      }
+      .send:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+        transform: none;
+      }
+      .hint {
+        font-size: 10px;
+        color: #566b8d;
+        letter-spacing: 1.7px;
+        margin: 10px 4px 0;
+        display: flex;
+        justify-content: space-between;
+      }
+      .typing {
+        display: inline-flex;
+        gap: 5px;
+        padding: 5px 0;
+      }
+      .typing span {
+        width: 7px;
+        height: 7px;
+        background: #7daeff;
+        border-radius: 50%;
+        animation: b 1s infinite;
+      }
+      .typing span:nth-child(2) {
+        animation-delay: 0.15s;
+      }
+      .typing span:nth-child(3) {
+        animation-delay: 0.3s;
+      }
+      @keyframes b {
+        0%,
+        60%,
+        100% {
+          opacity: 0.25;
+          transform: translateY(0);
+        }
+        30% {
+          opacity: 1;
+          transform: translateY(-4px);
+        }
+      }
+      .palette {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.62);
+        display: none;
+        align-items: flex-start;
+        justify-content: center;
+        padding-top: 13vh;
+        z-index: 20;
+        backdrop-filter: blur(5px);
+      }
+      .palette.open {
+        display: flex;
+      }
+      .palette-box {
+        width: min(620px, 92vw);
+        background: #081329;
+        border: 1px solid #294574;
+        border-radius: 16px;
+        box-shadow: 0 30px 100px #000;
+        overflow: hidden;
+      }
+      .palette-input {
+        width: 100%;
+        border: 0;
+        border-bottom: 1px solid #20385f;
+        background: #060e20;
+        padding: 17px;
+        color: white;
+        outline: 0;
+      }
+      .palette-list {
+        padding: 8px;
+      }
+      .command {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        text-align: left;
+        border: 0;
+        background: transparent;
+        padding: 13px;
+        border-radius: 9px;
+        cursor: pointer;
+      }
+      .command:hover {
+        background: #10234a;
+      }
+      .command small {
+        color: #7185a8;
+      }
+      .toast {
+        position: fixed;
+        right: 25px;
+        bottom: 25px;
+        background: #0b1a35;
+        border: 1px solid #315b98;
+        border-radius: 10px;
+        padding: 11px 14px;
+        box-shadow: var(--shadow);
+        display: none;
+        z-index: 30;
+      }
+      .toast.show {
+        display: block;
+        animation: appear 0.2s ease;
+      }
+      @media (max-width: 900px) {
+        .sidebar {
+          width: 250px;
+          flex-basis: 250px;
+        }
+        .messages {
+          padding: 30px 20px;
+        }
+        .composer-wrap {
+          padding: 0 20px 18px;
+        }
+      }
+      @media (max-width: 700px) {
+        .sidebar {
+          display: none;
+        }
+        .topbar {
+          padding: 0 18px;
+        }
+        .top-brand {
+          font-size: 15px;
+        }
+        .route .badge {
+          display: none;
+        }
+        .quick-grid {
+          grid-template-columns: 1fr;
+        }
+        .hint span:last-child {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-mark"></div>
+          <span>NEXUS</span>
+        </div>
+        <button class="new-chat" id="newChat">＋ NUEVA CONVERSACIÓN</button>
+        <input class="search" id="search" placeholder="Buscar conversaciones…" />
+        <div class="section-label">CONVERSACIONES</div>
+        <div class="conversations" id="conversations"></div>
+        <div class="sidebar-bottom">
+          <div class="stats">
+            <div class="stat"><small>CHATS</small><strong id="chatCount">0</strong></div>
+            <div class="stat"><small>MENSAJES</small><strong id="messageCount">0</strong></div>
+          </div>
+          <div class="status-card">
+            <div class="status-title">ROUTING · MI-COMBO</div>
+            <div id="status" class="online"><span class="dot"></span>OMNIROUTE ONLINE</div>
+          </div>
+        </div>
+      </aside>
+
+      <main class="main">
+        <header class="topbar">
+          <div class="top-brand">
+            <div class="brand-mark"></div>
+            <span>OMNI // NEXUS</span>
+          </div>
+          <div class="route">
+            <div class="badge">ROUTE · MI-COMBO</div>
+            <button class="icon-btn" id="paletteBtn" title="Comandos">⌘</button>
+            <button class="icon-btn" id="exportBtn" title="Exportar">↥</button>
+            <div id="topStatus" class="online"><span class="dot"></span>ONLINE</div>
+          </div>
+        </header>
+
+        <section class="messages" id="messages"></section>
+
+        <div class="composer-wrap">
+          <div class="composer">
+            <textarea id="input" rows="1" placeholder="Escribe algo para NEXUS..."></textarea>
+            <button class="send" id="send" title="Enviar">➤</button>
+          </div>
+          <div class="hint">
+            <span>ENTER · ENVIAR　·　SHIFT+ENTER · SALTO</span><span>CTRL+K · COMANDOS</span>
+          </div>
+        </div>
+      </main>
     </div>
-    <div class="status-card">
-      <div class="status-title">ROUTING · MI-COMBO</div>
-      <div id="status" class="online"><span class="dot"></span>OMNIROUTE ONLINE</div>
+
+    <div class="palette" id="palette">
+      <div class="palette-box">
+        <input class="palette-input" id="paletteInput" placeholder="¿Qué quieres hacer?" />
+        <div class="palette-list" id="commandList">
+          <button class="command" data-action="new">
+            <span>Nueva conversación</span><small>Ctrl+N</small>
+          </button>
+          <button class="command" data-action="export">
+            <span>Exportar conversación</span><small>JSON</small>
+          </button>
+          <button class="command" data-action="clear">
+            <span>Limpiar conversación actual</span><small>⚠</small>
+          </button>
+          <button class="command" data-action="copyall">
+            <span>Copiar conversación</span><small>PORTAPAPELES</small>
+          </button>
+        </div>
+      </div>
     </div>
-  </div>
-</aside>
+    <div class="toast" id="toast"></div>
 
-<main class="main">
-<header class="topbar">
-  <div class="top-brand"><div class="brand-mark"></div><span>OMNI // NEXUS</span></div>
-  <div class="route">
-    <div class="badge">ROUTE · MI-COMBO</div>
-    <button class="icon-btn" id="paletteBtn" title="Comandos">⌘</button>
-    <button class="icon-btn" id="exportBtn" title="Exportar">↥</button>
-    <div id="topStatus" class="online"><span class="dot"></span>ONLINE</div>
-  </div>
-</header>
+    <script>
+      const API = "/api/chat";
+      const KEY = "nexus_conversations_v2";
 
-<section class="messages" id="messages"></section>
+      let conversations = JSON.parse(localStorage.getItem(KEY) || "[]");
+      let current = conversations[0] || {
+        id: crypto.randomUUID(),
+        title: "Nueva conversación",
+        messages: [],
+      };
+      if (!conversations.find((c) => c.id === current.id)) conversations.unshift(current);
 
-<div class="composer-wrap">
-  <div class="composer">
-    <textarea id="input" rows="1" placeholder="Escribe algo para NEXUS..."></textarea>
-    <button class="send" id="send" title="Enviar">➤</button>
-  </div>
-  <div class="hint"><span>ENTER · ENVIAR　·　SHIFT+ENTER · SALTO</span><span>CTRL+K · COMANDOS</span></div>
-</div>
-</main>
-</div>
+      const messagesEl = document.getElementById("messages");
+      const input = document.getElementById("input");
+      const send = document.getElementById("send");
+      const conversationsEl = document.getElementById("conversations");
+      const search = document.getElementById("search");
+      const palette = document.getElementById("palette");
+      const paletteInput = document.getElementById("paletteInput");
 
-<div class="palette" id="palette">
-  <div class="palette-box">
-    <input class="palette-input" id="paletteInput" placeholder="¿Qué quieres hacer?">
-    <div class="palette-list" id="commandList">
-      <button class="command" data-action="new"><span>Nueva conversación</span><small>Ctrl+N</small></button>
-      <button class="command" data-action="export"><span>Exportar conversación</span><small>JSON</small></button>
-      <button class="command" data-action="clear"><span>Limpiar conversación actual</span><small>⚠</small></button>
-      <button class="command" data-action="copyall"><span>Copiar conversación</span><small>PORTAPAPELES</small></button>
-    </div>
-  </div>
-</div>
-<div class="toast" id="toast"></div>
-
-<script>
-const API="/api/chat";
-const KEY="nexus_conversations_v2";
-
-let conversations=JSON.parse(localStorage.getItem(KEY)||"[]");
-let current=conversations[0]||{id:crypto.randomUUID(),title:"Nueva conversación",messages:[]};
-if(!conversations.find(c=>c.id===current.id)) conversations.unshift(current);
-
-const messagesEl=document.getElementById("messages");
-const input=document.getElementById("input");
-const send=document.getElementById("send");
-const conversationsEl=document.getElementById("conversations");
-const search=document.getElementById("search");
-const palette=document.getElementById("palette");
-const paletteInput=document.getElementById("paletteInput");
-
-function save(){
-  const i=conversations.findIndex(c=>c.id===current.id);
-  if(i>=0) conversations[i]=current; else conversations.unshift(current);
-  localStorage.setItem(KEY,JSON.stringify(conversations));
-  renderConversations();updateStats();
-}
-function updateStats(){
-  document.getElementById("chatCount").textContent=conversations.length;
-  document.getElementById("messageCount").textContent=conversations.reduce((n,c)=>n+c.messages.length,0);
-}
-function renderConversations(){
-  const q=search.value.trim().toLowerCase();
-  conversationsEl.innerHTML="";
-  conversations.filter(c=>!q||c.title.toLowerCase().includes(q)).forEach(c=>{
-    const el=document.createElement("div");
-    el.className="conversation"+(c.id===current.id?" active":"");
-    el.innerHTML=`<div style="min-width:0"><div class="conversation-title">${escapeHtml(c.title)}</div>
+      function save() {
+        const i = conversations.findIndex((c) => c.id === current.id);
+        if (i >= 0) conversations[i] = current;
+        else conversations.unshift(current);
+        localStorage.setItem(KEY, JSON.stringify(conversations));
+        renderConversations();
+        updateStats();
+      }
+      function updateStats() {
+        document.getElementById("chatCount").textContent = conversations.length;
+        document.getElementById("messageCount").textContent = conversations.reduce(
+          (n, c) => n + c.messages.length,
+          0
+        );
+      }
+      function renderConversations() {
+        const q = search.value.trim().toLowerCase();
+        conversationsEl.innerHTML = "";
+        conversations
+          .filter((c) => !q || c.title.toLowerCase().includes(q))
+          .forEach((c) => {
+            const el = document.createElement("div");
+            el.className = "conversation" + (c.id === current.id ? " active" : "");
+            el.innerHTML = `<div style="min-width:0"><div class="conversation-title">${escapeHtml(c.title)}</div>
       <div class="conversation-meta">${c.messages.length} mensajes</div></div>
       <button class="delete" title="Borrar">×</button>`;
-    el.addEventListener("click",e=>{
-      if(e.target.closest(".delete"))return;
-      current=c;renderMessages();renderConversations();
-    });
-    el.querySelector(".delete").addEventListener("click",e=>{
-      e.stopPropagation();
-      conversations=conversations.filter(x=>x.id!==c.id);
-      current=conversations[0]||{id:crypto.randomUUID(),title:"Nueva conversación",messages:[]};
-      if(!conversations.length)conversations=[current];
-      save();renderMessages();
-    });
-    conversationsEl.appendChild(el);
-  });
-}
-function renderMessages(){
-  messagesEl.innerHTML="";
-  if(!current.messages.length){
-    messagesEl.innerHTML=`<div class="empty"><div class="empty-inner">
+            el.addEventListener("click", (e) => {
+              if (e.target.closest(".delete")) return;
+              current = c;
+              renderMessages();
+              renderConversations();
+            });
+            el.querySelector(".delete").addEventListener("click", (e) => {
+              e.stopPropagation();
+              conversations = conversations.filter((x) => x.id !== c.id);
+              current = conversations[0] || {
+                id: crypto.randomUUID(),
+                title: "Nueva conversación",
+                messages: [],
+              };
+              if (!conversations.length) conversations = [current];
+              save();
+              renderMessages();
+            });
+            conversationsEl.appendChild(el);
+          });
+      }
+      function renderMessages() {
+        messagesEl.innerHTML = "";
+        if (!current.messages.length) {
+          messagesEl.innerHTML = `<div class="empty"><div class="empty-inner">
       <h1>NEXUS</h1><p>Interfaz inteligente conectada a OmniRoute.</p>
       <div class="quick-grid">
         <button class="quick" data-prompt="Explícame un concepto de programación de forma sencilla."><strong>⚡ Aprender</strong><span>Explica cualquier concepto técnico.</span></button>
@@ -273,291 +755,545 @@ function renderMessages(){
         <button class="quick" data-prompt="Analiza este problema paso a paso y propón una solución."><strong>🧠 Resolver</strong><span>Descompón problemas complejos.</span></button>
         <button class="quick" data-prompt="Dame 5 ideas creativas para mejorar mi aplicación NEXUS."><strong>✨ Mejorar NEXUS</strong><span>Ideas para seguir evolucionando el sistema.</span></button>
       </div></div></div>`;
-    document.querySelectorAll(".quick").forEach(b=>b.onclick=()=>{input.value=b.dataset.prompt;sendMessage()});
-    return;
-  }
-  current.messages.forEach((m,i)=>appendMessage(m.role,m.content,false,i));
-  scrollBottom();
-}
-function appendMessage(role,content,scroll=true,index=-1){
-  const empty=messagesEl.querySelector(".empty");if(empty)empty.remove();
-  const box=document.createElement("article");
-  box.className="message "+(role==="user"?"user":"assistant");
-  const head=document.createElement("div");head.className="message-head";
-  head.textContent=role==="user"?"TÚ · AHORA":"NEXUS";
-  const body=document.createElement("div");body.className="message-body";body.innerHTML=formatText(content);
-  box.append(head,body);
-  if(role==="assistant"&&index>=0){
-    const actions=document.createElement("div");actions.className="message-actions";
-    actions.innerHTML=`<button class="action" data-copy>⧉ Copiar</button><button class="action" data-regenerate>↻ Regenerar</button>`;
-    actions.querySelector("[data-copy]").onclick=()=>copyText(content);
-    actions.querySelector("[data-regenerate]").onclick=()=>regenerate(index);
-    box.appendChild(actions);
-  }
-  messagesEl.appendChild(box);if(scroll)scrollBottom();return body;
-}
-function appendError(text){
-  const box=document.createElement("article");box.className="message assistant error";
-  box.innerHTML=`<div class="message-head">NEXUS · ERROR</div><div class="message-body">⚠ ${escapeHtml(text)}</div>`;
-  messagesEl.appendChild(box);scrollBottom();
-}
-function escapeHtml(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
-function formatText(text){
-  let s=escapeHtml(text);
-  s=s.replace(/```([\s\S]*?)```/g,"<pre>$1</pre>");
-  s=s.replace(/`([^`]+)`/g,"<code>$1</code>");
-  return s;
-}
-function scrollBottom(){messagesEl.scrollTop=messagesEl.scrollHeight}
-function typingBubble(){
-  const box=document.createElement("article");box.className="message assistant";box.id="typing";
-  box.innerHTML=`<div class="message-head">NEXUS · PROCESANDO</div><div class="typing"><span></span><span></span><span></span></div>`;
-  messagesEl.appendChild(box);scrollBottom();
-}
-function removeTyping(){document.getElementById("typing")?.remove()}
-async function readResponse(response){
-  const type=(response.headers.get("content-type")||"").toLowerCase();
-  if(type.includes("application/json")){
-    const data=await response.json();
-    return data.respuesta??data.choices?.[0]?.message?.content??data.content??"";
-  }
-  const reader=response.body.getReader(),decoder=new TextDecoder();
-  let buffer="",result="";
-  function consume(chunk){
-    buffer+=chunk;const lines=buffer.split(/\r?\n/);buffer=lines.pop()||"";
-    for(const line of lines){
-      if(!line.startsWith("data:"))continue;
-      const raw=line.slice(5).trim();if(!raw||raw==="[DONE]")continue;
-      try{
-        const parsed=JSON.parse(raw);
-        if(typeof parsed==="string"){result+=parsed;continue}
-        const piece=parsed.choices?.[0]?.delta?.content??parsed.choices?.[0]?.message?.content??parsed.content??"";
-        if(piece)result+=piece;
-      }catch{result+=raw}
-    }
-  }
-  while(true){const {value,done}=await reader.read();if(done)break;consume(decoder.decode(value,{stream:true}))}
-  consume(decoder.decode());return result;
-}
-async function sendMessage(){
-  const text=input.value.trim();if(!text||send.disabled)return;
-  if(current.title==="Nueva conversación")current.title=text.length>30?text.slice(0,30)+"…":text;
-  current.messages.push({role:"user",content:text});appendMessage("user",text);input.value="";input.style.height="auto";save();
-  send.disabled=true;typingBubble();
-  try{
-    const response=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({messages:current.messages})});
-    if(!response.ok)throw new Error("HTTP "+response.status);
-    const answer=await readResponse(response);removeTyping();
-    if(!answer.trim())throw new Error("La respuesta llegó vacía.");
-    current.messages.push({role:"assistant",content:answer});appendMessage("assistant",answer,true,current.messages.length-1);save();
-  }catch(error){
-    console.error(error);removeTyping();appendError(error.message.includes("Failed to fetch")?"No se pudo conectar con server.js.":"No se pudo obtener una respuesta de la IA. "+error.message);
-  }finally{send.disabled=false;input.focus()}
-}
-async function regenerate(index){
-  if(send.disabled||index<1)return;
-  current.messages.splice(index,1);renderMessages();save();
-  const payload=current.messages;
-  send.disabled=true;typingBubble();
-  try{
-    const response=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({messages:payload})});
-    if(!response.ok)throw new Error("HTTP "+response.status);
-    const answer=await readResponse(response);removeTyping();
-    if(!answer.trim())throw new Error("Respuesta vacía.");
-    current.messages.push({role:"assistant",content:answer});renderMessages();save();
-  }catch(e){removeTyping();appendError("No se pudo regenerar: "+e.message)}
-  finally{send.disabled=false}
-}
-async function copyText(text){
-  try{await navigator.clipboard.writeText(text);toast("Copiado al portapapeles ✓")}
-  catch{toast("No se pudo copiar automáticamente")}
-}
-function exportChat(){
-  const blob=new Blob([JSON.stringify(current,null,2)],{type:"application/json"});
-  const a=document.createElement("a");a.href=URL.createObjectURL(blob);
-  a.download="nexus-"+new Date().toISOString().slice(0,10)+".json";a.click();URL.revokeObjectURL(a.href);toast("Conversación exportada ✓");
-}
-async function copyAll(){
-  const text=current.messages.map(m=>(m.role==="user"?"TÚ":"NEXUS")+": "+m.content).join("\n\n");
-  await copyText(text||"Conversación vacía");
-}
-function clearCurrent(){
-  if(!current.messages.length)return;
-  if(!confirm("¿Limpiar la conversación actual?"))return;
-  current.messages=[];save();renderMessages();toast("Conversación limpiada");
-}
-function newChat(){
-  current={id:crypto.randomUUID(),title:"Nueva conversación",messages:[]};conversations.unshift(current);
-  save();renderMessages();input.focus();
-}
-function toast(text){const t=document.getElementById("toast");t.textContent=text;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),1800)}
-function closePalette(){palette.classList.remove("open");paletteInput.value=""}
-function openPalette(){palette.classList.add("open");setTimeout(()=>paletteInput.focus(),30)}
-function command(action){
-  if(action==="new")newChat();
-  if(action==="export")exportChat();
-  if(action==="clear")clearCurrent();
-  if(action==="copyall")copyAll();
-  closePalette();
-}
-document.getElementById("newChat").onclick=newChat;
-document.getElementById("exportBtn").onclick=exportChat;
-document.getElementById("paletteBtn").onclick=openPalette;
-document.getElementById("commandList").onclick=e=>{const b=e.target.closest("[data-action]");if(b)command(b.dataset.action)};
-palette.onclick=e=>{if(e.target===palette)closePalette()};
-search.oninput=renderConversations;
-send.onclick=sendMessage;
-input.onkeydown=e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendMessage()}};
-input.oninput=()=>{input.style.height="auto";input.style.height=Math.min(input.scrollHeight,150)+"px"};
-document.addEventListener("keydown",e=>{
-  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="k"){e.preventDefault();openPalette()}
-  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="n"){e.preventDefault();newChat()}
-  if(e.key==="Escape")closePalette();
-});
-paletteInput.oninput=()=>{
-  const q=paletteInput.value.toLowerCase();
-  document.querySelectorAll(".command").forEach(c=>c.style.display=c.textContent.toLowerCase().includes(q)?"flex":"none");
-};
-async function checkHealth(){
-  try{
-    const r=await fetch("/api/health",{cache:"no-store"});
-    if(!r.ok)throw 0;
-    document.getElementById("status").innerHTML='<span class="dot"></span>OMNIROUTE ONLINE';
-    document.getElementById("status").className="online";
-    document.getElementById("topStatus").innerHTML='<span class="dot"></span>ONLINE';
-    document.getElementById("topStatus").className="online";
-  }catch{
-    document.getElementById("status").innerHTML='<span class="dot off"></span>SERVER OFFLINE';
-    document.getElementById("status").className="offline";
-    document.getElementById("topStatus").innerHTML='<span class="dot off"></span>OFFLINE';
-    document.getElementById("topStatus").className="offline";
-  }
-}
-// Repair text that was saved with a legacy Windows encoding without touching user messages.
-function repairMojibake(value){
-  if(!/[ÃÂð]/.test(value))return value;
-  const windows1252={"€":128,"‚":130,"ƒ":131,"„":132,"…":133,"†":134,"‡":135,"ˆ":136,"‰":137,"Š":138,"‹":139,"Œ":140,"Ž":142,"‘":145,"’":146,"“":147,"”":148,"•":149,"–":150,"—":151,"˜":152,"™":153,"š":154,"›":155,"œ":156,"ž":158,"Ÿ":159};
-  try{return new TextDecoder("utf-8",{fatal:true}).decode(Uint8Array.from([...value],c=>windows1252[c]??c.codePointAt(0)))}catch{return value}
-}
-function repairStaticText(){
-  const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
-  const nodes=[];while(walker.nextNode())if(!["SCRIPT","STYLE"].includes(walker.currentNode.parentElement?.tagName))nodes.push(walker.currentNode);
-  nodes.forEach(node=>node.nodeValue=repairMojibake(node.nodeValue));
-  document.querySelectorAll("[title],[placeholder]").forEach(el=>["title","placeholder"].forEach(name=>{if(el.hasAttribute(name))el.setAttribute(name,repairMojibake(el.getAttribute(name)))}));
-}
-repairStaticText();
+          document.querySelectorAll(".quick").forEach(
+            (b) =>
+              (b.onclick = () => {
+                input.value = b.dataset.prompt;
+                sendMessage();
+              })
+          );
+          return;
+        }
+        current.messages.forEach((m, i) => appendMessage(m.role, m.content, false, i));
+        scrollBottom();
+      }
+      function appendMessage(role, content, scroll = true, index = -1) {
+        const empty = messagesEl.querySelector(".empty");
+        if (empty) empty.remove();
+        const box = document.createElement("article");
+        box.className = "message " + (role === "user" ? "user" : "assistant");
+        const head = document.createElement("div");
+        head.className = "message-head";
+        head.textContent = role === "user" ? "TÚ · AHORA" : "NEXUS";
+        const body = document.createElement("div");
+        body.className = "message-body";
+        body.innerHTML = formatText(content);
+        box.append(head, body);
+        if (role === "assistant" && index >= 0) {
+          const actions = document.createElement("div");
+          actions.className = "message-actions";
+          actions.innerHTML = `<button class="action" data-copy>⧉ Copiar</button><button class="action" data-regenerate>↻ Regenerar</button>`;
+          actions.querySelector("[data-copy]").onclick = () => copyText(content);
+          actions.querySelector("[data-regenerate]").onclick = () => regenerate(index);
+          box.appendChild(actions);
+        }
+        messagesEl.appendChild(box);
+        if (scroll) scrollBottom();
+        return body;
+      }
+      function appendError(text) {
+        const box = document.createElement("article");
+        box.className = "message assistant error";
+        box.innerHTML = `<div class="message-head">NEXUS · ERROR</div><div class="message-body">⚠ ${escapeHtml(text)}</div>`;
+        messagesEl.appendChild(box);
+        scrollBottom();
+      }
+      function escapeHtml(s) {
+        return String(s ?? "").replace(
+          /[&<>"']/g,
+          (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" })[c]
+        );
+      }
+      function formatText(text) {
+        let s = escapeHtml(text);
+        s = s.replace(/```([\s\S]*?)```/g, "<pre>$1</pre>");
+        s = s.replace(/`([^`]+)`/g, "<code>$1</code>");
+        return s;
+      }
+      function scrollBottom() {
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+      }
+      function typingBubble() {
+        const box = document.createElement("article");
+        box.className = "message assistant";
+        box.id = "typing";
+        box.innerHTML = `<div class="message-head">NEXUS · PROCESANDO</div><div class="typing"><span></span><span></span><span></span></div>`;
+        messagesEl.appendChild(box);
+        scrollBottom();
+      }
+      function removeTyping() {
+        document.getElementById("typing")?.remove();
+      }
+      async function readResponse(response) {
+        const type = (response.headers.get("content-type") || "").toLowerCase();
+        if (type.includes("application/json")) {
+          const data = await response.json();
+          return data.respuesta ?? data.choices?.[0]?.message?.content ?? data.content ?? "";
+        }
+        const reader = response.body.getReader(),
+          decoder = new TextDecoder();
+        let buffer = "",
+          result = "";
+        function consume(chunk) {
+          buffer += chunk;
+          const lines = buffer.split(/\r?\n/);
+          buffer = lines.pop() || "";
+          for (const line of lines) {
+            if (!line.startsWith("data:")) continue;
+            const raw = line.slice(5).trim();
+            if (!raw || raw === "[DONE]") continue;
+            try {
+              const parsed = JSON.parse(raw);
+              if (typeof parsed === "string") {
+                result += parsed;
+                continue;
+              }
+              const piece =
+                parsed.choices?.[0]?.delta?.content ??
+                parsed.choices?.[0]?.message?.content ??
+                parsed.content ??
+                "";
+              if (piece) result += piece;
+            } catch {
+              result += raw;
+            }
+          }
+        }
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          consume(decoder.decode(value, { stream: true }));
+        }
+        consume(decoder.decode());
+        return result;
+      }
+      async function sendMessage() {
+        const text = input.value.trim();
+        if (!text || send.disabled) return;
+        if (current.title === "Nueva conversación")
+          current.title = text.length > 30 ? text.slice(0, 30) + "…" : text;
+        current.messages.push({ role: "user", content: text });
+        appendMessage("user", text);
+        input.value = "";
+        input.style.height = "auto";
+        save();
+        send.disabled = true;
+        typingBubble();
+        try {
+          const response = await fetch(API, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ messages: current.messages }),
+          });
+          if (!response.ok) throw new Error("HTTP " + response.status);
+          const answer = await readResponse(response);
+          removeTyping();
+          if (!answer.trim()) throw new Error("La respuesta llegó vacía.");
+          current.messages.push({ role: "assistant", content: answer });
+          appendMessage("assistant", answer, true, current.messages.length - 1);
+          save();
+        } catch (error) {
+          console.error(error);
+          removeTyping();
+          appendError(
+            error.message.includes("Failed to fetch")
+              ? "No se pudo conectar con server.js."
+              : "No se pudo obtener una respuesta de la IA. " + error.message
+          );
+        } finally {
+          send.disabled = false;
+          input.focus();
+        }
+      }
+      async function regenerate(index) {
+        if (send.disabled || index < 1) return;
+        current.messages.splice(index, 1);
+        renderMessages();
+        save();
+        const payload = current.messages;
+        send.disabled = true;
+        typingBubble();
+        try {
+          const response = await fetch(API, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ messages: payload }),
+          });
+          if (!response.ok) throw new Error("HTTP " + response.status);
+          const answer = await readResponse(response);
+          removeTyping();
+          if (!answer.trim()) throw new Error("Respuesta vacía.");
+          current.messages.push({ role: "assistant", content: answer });
+          renderMessages();
+          save();
+        } catch (e) {
+          removeTyping();
+          appendError("No se pudo regenerar: " + e.message);
+        } finally {
+          send.disabled = false;
+        }
+      }
+      async function copyText(text) {
+        try {
+          await navigator.clipboard.writeText(text);
+          toast("Copiado al portapapeles ✓");
+        } catch {
+          toast("No se pudo copiar automáticamente");
+        }
+      }
+      function exportChat() {
+        const blob = new Blob([JSON.stringify(current, null, 2)], { type: "application/json" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "nexus-" + new Date().toISOString().slice(0, 10) + ".json";
+        a.click();
+        URL.revokeObjectURL(a.href);
+        toast("Conversación exportada ✓");
+      }
+      async function copyAll() {
+        const text = current.messages
+          .map((m) => (m.role === "user" ? "TÚ" : "NEXUS") + ": " + m.content)
+          .join("\n\n");
+        await copyText(text || "Conversación vacía");
+      }
+      function clearCurrent() {
+        if (!current.messages.length) return;
+        if (!confirm("¿Limpiar la conversación actual?")) return;
+        current.messages = [];
+        save();
+        renderMessages();
+        toast("Conversación limpiada");
+      }
+      function newChat() {
+        current = { id: crypto.randomUUID(), title: "Nueva conversación", messages: [] };
+        conversations.unshift(current);
+        save();
+        renderMessages();
+        input.focus();
+      }
+      function toast(text) {
+        const t = document.getElementById("toast");
+        t.textContent = text;
+        t.classList.add("show");
+        setTimeout(() => t.classList.remove("show"), 1800);
+      }
+      function closePalette() {
+        palette.classList.remove("open");
+        paletteInput.value = "";
+      }
+      function openPalette() {
+        palette.classList.add("open");
+        setTimeout(() => paletteInput.focus(), 30);
+      }
+      function command(action) {
+        if (action === "new") newChat();
+        if (action === "export") exportChat();
+        if (action === "clear") clearCurrent();
+        if (action === "copyall") copyAll();
+        closePalette();
+      }
+      document.getElementById("newChat").onclick = newChat;
+      document.getElementById("exportBtn").onclick = exportChat;
+      document.getElementById("paletteBtn").onclick = openPalette;
+      document.getElementById("commandList").onclick = (e) => {
+        const b = e.target.closest("[data-action]");
+        if (b) command(b.dataset.action);
+      };
+      palette.onclick = (e) => {
+        if (e.target === palette) closePalette();
+      };
+      search.oninput = renderConversations;
+      send.onclick = sendMessage;
+      input.onkeydown = (e) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          sendMessage();
+        }
+      };
+      input.oninput = () => {
+        input.style.height = "auto";
+        input.style.height = Math.min(input.scrollHeight, 150) + "px";
+      };
+      document.addEventListener("keydown", (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+          e.preventDefault();
+          openPalette();
+        }
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "n") {
+          e.preventDefault();
+          newChat();
+        }
+        if (e.key === "Escape") closePalette();
+      });
+      paletteInput.oninput = () => {
+        const q = paletteInput.value.toLowerCase();
+        document
+          .querySelectorAll(".command")
+          .forEach(
+            (c) => (c.style.display = c.textContent.toLowerCase().includes(q) ? "flex" : "none")
+          );
+      };
+      async function checkHealth() {
+        try {
+          const r = await fetch("/api/health", { cache: "no-store" });
+          if (!r.ok) throw 0;
+          document.getElementById("status").innerHTML = '<span class="dot"></span>OMNIROUTE ONLINE';
+          document.getElementById("status").className = "online";
+          document.getElementById("topStatus").innerHTML = '<span class="dot"></span>ONLINE';
+          document.getElementById("topStatus").className = "online";
+        } catch {
+          document.getElementById("status").innerHTML =
+            '<span class="dot off"></span>SERVER OFFLINE';
+          document.getElementById("status").className = "offline";
+          document.getElementById("topStatus").innerHTML = '<span class="dot off"></span>OFFLINE';
+          document.getElementById("topStatus").className = "offline";
+        }
+      }
+      // Repair text that was saved with a legacy Windows encoding without touching user messages.
+      function repairMojibake(value) {
+        if (!/[ÃÂð]/.test(value)) return value;
+        const windows1252 = {
+          "€": 128,
+          "‚": 130,
+          ƒ: 131,
+          "„": 132,
+          "…": 133,
+          "†": 134,
+          "‡": 135,
+          ˆ: 136,
+          "‰": 137,
+          Š: 138,
+          "‹": 139,
+          Œ: 140,
+          Ž: 142,
+          "‘": 145,
+          "’": 146,
+          "“": 147,
+          "”": 148,
+          "•": 149,
+          "–": 150,
+          "—": 151,
+          "˜": 152,
+          "™": 153,
+          š: 154,
+          "›": 155,
+          œ: 156,
+          ž: 158,
+          Ÿ: 159,
+        };
+        try {
+          return new TextDecoder("utf-8", { fatal: true }).decode(
+            Uint8Array.from([...value], (c) => windows1252[c] ?? c.codePointAt(0))
+          );
+        } catch {
+          return value;
+        }
+      }
+      function repairStaticText() {
+        const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+        const nodes = [];
+        while (walker.nextNode())
+          if (!["SCRIPT", "STYLE"].includes(walker.currentNode.parentElement?.tagName))
+            nodes.push(walker.currentNode);
+        nodes.forEach((node) => (node.nodeValue = repairMojibake(node.nodeValue)));
+        document.querySelectorAll("[title],[placeholder]").forEach((el) =>
+          ["title", "placeholder"].forEach((name) => {
+            if (el.hasAttribute(name)) el.setAttribute(name, repairMojibake(el.getAttribute(name)));
+          })
+        );
+      }
+      repairStaticText();
 
-// Server-backed conversation state. This replaces the old localStorage-only flow.
-async function api(url, options={}) {
-  const response=await fetch(url,options);
-  if(!response.ok){
-    const payload=await response.json().catch(()=>({}));
-    throw new Error(payload.error||`HTTP ${response.status}`);
-  }
-  return response.json();
-}
-async function loadConversations(selectId=current?.id){
-  const data=await api("/api/conversations");
-  conversations=data.conversations;
-  if(selectId&&conversations.some(c=>c.id===selectId)) await loadConversation(selectId,false);
-  else if(conversations.length) await loadConversation(conversations[0].id,false);
-  else {current={id:null,title:"Nueva conversación",messages:[]};renderMessages();}
-  renderConversations();updateStats();
-}
-async function loadConversation(id, paint=true){
-  const data=await api(`/api/conversations/${id}`);
-  current={...data.conversation,messages:data.messages};
-  if(paint){renderMessages();renderConversations();}
-}
-function updateStats(){
-  document.getElementById("chatCount").textContent=conversations.length;
-  document.getElementById("messageCount").textContent=conversations.reduce((n,c)=>n+Number(c.message_count||0),0);
-}
-function renderConversations(){
-  const q=search.value.trim().toLowerCase();
-  conversationsEl.innerHTML="";
-  conversations.filter(c=>!q||c.title.toLowerCase().includes(q)).forEach(c=>{
-    const el=document.createElement("div");
-    el.className="conversation"+(c.id===current?.id?" active":"");
-    el.innerHTML=`<div style="min-width:0"><div class="conversation-title">${escapeHtml(c.title)}</div><div class="conversation-meta">${c.message_count} mensajes</div></div><button class="delete" title="Borrar">×</button>`;
-    el.addEventListener("click",e=>{if(!e.target.closest(".delete"))loadConversation(c.id)});
-    el.querySelector(".delete").addEventListener("click",async e=>{
-      e.stopPropagation();
-      if(!confirm("¿Borrar esta conversación?"))return;
-      try{await api(`/api/conversations/${c.id}`,{method:"DELETE"});await loadConversations();}
-      catch(error){appendError(error.message)}
-    });
-    conversationsEl.appendChild(el);
-  });
-}
-function renderMessages(){
-  messagesEl.innerHTML="";
-  if(!current?.messages?.length){
-    messagesEl.innerHTML='<div class="empty"><div class="empty-inner"><h1>NEXUS</h1><p>Interfaz inteligente conectada a OmniRoute.</p><div class="quick-grid"><button class="quick" data-prompt="Explícame un concepto de programación de forma sencilla."><strong>⚡ Aprender</strong><span>Explica cualquier concepto técnico.</span></button><button class="quick" data-prompt="Ayúdame a crear una idea de proyecto web espectacular."><strong>🚀 Crear proyecto</strong><span>Ideas y arquitectura para proyectos.</span></button><button class="quick" data-prompt="Analiza este problema paso a paso y propón una solución."><strong>🧠 Resolver</strong><span>Descompón problemas complejos.</span></button><button class="quick" data-prompt="Dame 5 ideas creativas para mejorar mi aplicación NEXUS."><strong>✨ Mejorar NEXUS</strong><span>Ideas para seguir evolucionando el sistema.</span></button></div></div></div>';
-    document.querySelectorAll(".quick").forEach(button=>button.onclick=()=>{input.value=button.dataset.prompt;sendMessage()});
-    return;
-  }
-  current.messages.forEach((message,index)=>appendMessage(message.role,message.content,false,index));
-  scrollBottom();
-}
-function appendMessage(role,content,scroll=true,index=-1){
-  const empty=messagesEl.querySelector(".empty");if(empty)empty.remove();
-  const box=document.createElement("article");box.className="message "+(role==="user"?"user":"assistant");
-  const head=document.createElement("div");head.className="message-head";head.textContent=role==="user"?"TÚ · AHORA":"NEXUS";
-  const body=document.createElement("div");body.className="message-body";body.innerHTML=formatText(content);box.append(head,body);
-  if(role==="assistant"&&index>=0){
-    const actions=document.createElement("div");actions.className="message-actions";
-    actions.innerHTML='<button class="action" data-copy>⧉ Copiar</button>';
-    actions.querySelector("[data-copy]").onclick=()=>copyText(content);box.appendChild(actions);
-  }
-  messagesEl.appendChild(box);if(scroll)scrollBottom();return body;
-}
-async function createServerConversation(){
-  const data=await api("/api/conversations",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({title:"Nueva conversación"})});
-  current={...data.conversation,messages:[]};
-  await loadConversations(current.id);
-}
-async function sendMessage(){
-  const text=input.value.trim();if(!text||send.disabled)return;
-  try{
-    send.disabled=true;
-    if(!current?.id)await createServerConversation();
-    current.messages.push({role:"user",content:text});appendMessage("user",text);input.value="";input.style.height="auto";typingBubble();
-    const data=await api(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({conversationId:current.id,messages:[{role:"user",content:text}]})});
-    removeTyping();current.messages.push({role:"assistant",content:data.respuesta});appendMessage("assistant",data.respuesta,true,current.messages.length-1);
-    await loadConversations(current.id);
-  }catch(error){removeTyping();appendError(error.message)}
-  finally{send.disabled=false;input.focus()}
-}
-async function regenerate(){toast("La regeneración se desactivó para preservar el historial guardado.")}
-async function clearCurrent(){
-  if(!current?.id||!current.messages.length)return;
-  if(!confirm("¿Limpiar la conversación actual?"))return;
-  try{await api(`/api/conversations/${current.id}/messages`,{method:"DELETE"});await loadConversation(current.id);await loadConversations(current.id);toast("Conversación limpiada");}
-  catch(error){appendError(error.message)}
-}
-async function newChat(){
-  try{await createServerConversation();renderMessages();input.focus();}
-  catch(error){appendError(error.message)}
-}
-async function checkHealth(){
-  try{
-    const health=await api("/api/health",{cache:"no-store"});
-    document.getElementById("status").innerHTML='<span class="dot"></span>SERVIDOR ONLINE';
-    document.getElementById("status").className="online";
-    document.getElementById("topStatus").innerHTML='<span class="dot"></span>ONLINE';
-    document.getElementById("topStatus").className="online";
-    return health;
-  }catch{
-    document.getElementById("status").innerHTML='<span class="dot off"></span>SERVER OFFLINE';
-    document.getElementById("status").className="offline";
-    document.getElementById("topStatus").innerHTML='<span class="dot off"></span>OFFLINE';
-    document.getElementById("topStatus").className="offline";
-  }
-}
-search.oninput=renderConversations;
-loadConversations().catch(error=>appendError(`No se pudieron cargar las conversaciones: ${error.message}`));
-checkHealth();setInterval(checkHealth,10000);
-</script>
-</body>
+      // Server-backed conversation state. This replaces the old localStorage-only flow.
+      async function api(url, options = {}) {
+        const response = await fetch(url, options);
+        if (!response.ok) {
+          const payload = await response.json().catch(() => ({}));
+          throw new Error(payload.error || `HTTP ${response.status}`);
+        }
+        return response.json();
+      }
+      async function loadConversations(selectId = current?.id) {
+        const data = await api("/api/conversations");
+        conversations = data.conversations;
+        if (selectId && conversations.some((c) => c.id === selectId))
+          await loadConversation(selectId, false);
+        else if (conversations.length) await loadConversation(conversations[0].id, false);
+        else {
+          current = { id: null, title: "Nueva conversación", messages: [] };
+          renderMessages();
+        }
+        renderConversations();
+        updateStats();
+      }
+      async function loadConversation(id, paint = true) {
+        const data = await api(`/api/conversations/${id}`);
+        current = { ...data.conversation, messages: data.messages };
+        if (paint) {
+          renderMessages();
+          renderConversations();
+        }
+      }
+      function updateStats() {
+        document.getElementById("chatCount").textContent = conversations.length;
+        document.getElementById("messageCount").textContent = conversations.reduce(
+          (n, c) => n + Number(c.message_count || 0),
+          0
+        );
+      }
+      function renderConversations() {
+        const q = search.value.trim().toLowerCase();
+        conversationsEl.innerHTML = "";
+        conversations
+          .filter((c) => !q || c.title.toLowerCase().includes(q))
+          .forEach((c) => {
+            const el = document.createElement("div");
+            el.className = "conversation" + (c.id === current?.id ? " active" : "");
+            el.innerHTML = `<div style="min-width:0"><div class="conversation-title">${escapeHtml(c.title)}</div><div class="conversation-meta">${c.message_count} mensajes</div></div><button class="delete" title="Borrar">×</button>`;
+            el.addEventListener("click", (e) => {
+              if (!e.target.closest(".delete")) loadConversation(c.id);
+            });
+            el.querySelector(".delete").addEventListener("click", async (e) => {
+              e.stopPropagation();
+              if (!confirm("¿Borrar esta conversación?")) return;
+              try {
+                await api(`/api/conversations/${c.id}`, { method: "DELETE" });
+                await loadConversations();
+              } catch (error) {
+                appendError(error.message);
+              }
+            });
+            conversationsEl.appendChild(el);
+          });
+      }
+      function renderMessages() {
+        messagesEl.innerHTML = "";
+        if (!current?.messages?.length) {
+          messagesEl.innerHTML =
+            '<div class="empty"><div class="empty-inner"><h1>NEXUS</h1><p>Interfaz inteligente conectada a OmniRoute.</p><div class="quick-grid"><button class="quick" data-prompt="Explícame un concepto de programación de forma sencilla."><strong>⚡ Aprender</strong><span>Explica cualquier concepto técnico.</span></button><button class="quick" data-prompt="Ayúdame a crear una idea de proyecto web espectacular."><strong>🚀 Crear proyecto</strong><span>Ideas y arquitectura para proyectos.</span></button><button class="quick" data-prompt="Analiza este problema paso a paso y propón una solución."><strong>🧠 Resolver</strong><span>Descompón problemas complejos.</span></button><button class="quick" data-prompt="Dame 5 ideas creativas para mejorar mi aplicación NEXUS."><strong>✨ Mejorar NEXUS</strong><span>Ideas para seguir evolucionando el sistema.</span></button></div></div></div>';
+          document.querySelectorAll(".quick").forEach(
+            (button) =>
+              (button.onclick = () => {
+                input.value = button.dataset.prompt;
+                sendMessage();
+              })
+          );
+          return;
+        }
+        current.messages.forEach((message, index) =>
+          appendMessage(message.role, message.content, false, index)
+        );
+        scrollBottom();
+      }
+      function appendMessage(role, content, scroll = true, index = -1) {
+        const empty = messagesEl.querySelector(".empty");
+        if (empty) empty.remove();
+        const box = document.createElement("article");
+        box.className = "message " + (role === "user" ? "user" : "assistant");
+        const head = document.createElement("div");
+        head.className = "message-head";
+        head.textContent = role === "user" ? "TÚ · AHORA" : "NEXUS";
+        const body = document.createElement("div");
+        body.className = "message-body";
+        body.innerHTML = formatText(content);
+        box.append(head, body);
+        if (role === "assistant" && index >= 0) {
+          const actions = document.createElement("div");
+          actions.className = "message-actions";
+          actions.innerHTML = '<button class="action" data-copy>⧉ Copiar</button>';
+          actions.querySelector("[data-copy]").onclick = () => copyText(content);
+          box.appendChild(actions);
+        }
+        messagesEl.appendChild(box);
+        if (scroll) scrollBottom();
+        return body;
+      }
+      async function createServerConversation() {
+        const data = await api("/api/conversations", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title: "Nueva conversación" }),
+        });
+        current = { ...data.conversation, messages: [] };
+        await loadConversations(current.id);
+      }
+      async function sendMessage() {
+        const text = input.value.trim();
+        if (!text || send.disabled) return;
+        try {
+          send.disabled = true;
+          if (!current?.id) await createServerConversation();
+          current.messages.push({ role: "user", content: text });
+          appendMessage("user", text);
+          input.value = "";
+          input.style.height = "auto";
+          typingBubble();
+          const data = await api(API, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              conversationId: current.id,
+              messages: [{ role: "user", content: text }],
+            }),
+          });
+          removeTyping();
+          current.messages.push({ role: "assistant", content: data.respuesta });
+          appendMessage("assistant", data.respuesta, true, current.messages.length - 1);
+          await loadConversations(current.id);
+        } catch (error) {
+          removeTyping();
+          appendError(error.message);
+        } finally {
+          send.disabled = false;
+          input.focus();
+        }
+      }
+      async function regenerate() {
+        toast("La regeneración se desactivó para preservar el historial guardado.");
+      }
+      async function clearCurrent() {
+        if (!current?.id || !current.messages.length) return;
+        if (!confirm("¿Limpiar la conversación actual?")) return;
+        try {
+          await api(`/api/conversations/${current.id}/messages`, { method: "DELETE" });
+          await loadConversation(current.id);
+          await loadConversations(current.id);
+          toast("Conversación limpiada");
+        } catch (error) {
+          appendError(error.message);
+        }
+      }
+      async function newChat() {
+        try {
+          await createServerConversation();
+          renderMessages();
+          input.focus();
+        } catch (error) {
+          appendError(error.message);
+        }
+      }
+      async function checkHealth() {
+        try {
+          const health = await api("/api/health", { cache: "no-store" });
+          document.getElementById("status").innerHTML = '<span class="dot"></span>SERVIDOR ONLINE';
+          document.getElementById("status").className = "online";
+          document.getElementById("topStatus").innerHTML = '<span class="dot"></span>ONLINE';
+          document.getElementById("topStatus").className = "online";
+          return health;
+        } catch {
+          document.getElementById("status").innerHTML =
+            '<span class="dot off"></span>SERVER OFFLINE';
+          document.getElementById("status").className = "offline";
+          document.getElementById("topStatus").innerHTML = '<span class="dot off"></span>OFFLINE';
+          document.getElementById("topStatus").className = "offline";
+        }
+      }
+      search.oninput = renderConversations;
+      loadConversations().catch((error) =>
+        appendError(`No se pudieron cargar las conversaciones: ${error.message}`)
+      );
+      checkHealth();
+      setInterval(checkHealth, 10000);
+    </script>
+  </body>
 </html>
