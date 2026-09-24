@@ -37,7 +37,7 @@ function createNexusService({ client, conversations, memories, webSearch, calcul
         }
         if (route.tools.includes("CALCULATOR")) {
             try {
-                const expression = userText.match(/(?:\d+(?:[.,]\d+)?\s*[+\-*/%×÷]\s*)+\d+(?:[.,]\d+)?/)?.[0];
+                const expression = userText.match(/(?=[^]*[+\-*/%×÷])[()\d][()\d.,\s+\-*/%×÷]*/)?.[0]?.trim();
                 if (!expression) throw new Error("No se encontró una operación.");
                 context.push(`CALCULATOR:\nResultado: ${calculate(expression)}`);
             } catch (error) { context.push(`CALCULATOR ERROR: ${error.message}`); }

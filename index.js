@@ -1,5 +1,6 @@
+"use strict";
 const OpenAI = require("openai");
-const readline = require("readline");
+const readline = require("readline/promises");
 
 const client = new OpenAI({
     baseURL: process.env.OMNIROUTE_BASE_URL || "http://localhost:20128/v1",
@@ -18,8 +19,12 @@ const messages = [
     }
 ];
 
-function preguntar() {
-    rl.question("\nTú: ", async (texto) => {
+async function main() {
+    console.log("🤖 Chatbot OmniRoute");
+    console.log("Escribe 'salir' para cerrar.");
+
+    while (true) {
+        const texto = await rl.question("\nTú: ");
 
         if (texto.toLowerCase() === "salir") {
             console.log("Adiós 👋");
@@ -50,12 +55,7 @@ function preguntar() {
         } catch (error) {
             console.error("\n❌ Error:", error.message);
         }
-
-        preguntar();
-    });
+    }
 }
 
-console.log("🤖 Chatbot OmniRoute");
-console.log("Escribe 'salir' para cerrar.");
-
-preguntar();
+main();
